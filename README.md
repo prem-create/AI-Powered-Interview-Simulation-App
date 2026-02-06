@@ -50,7 +50,7 @@ Candidates struggle to know **how they perform**, **where they are weak**, and *
 
 - 🎙️ Speech-to-Text (STT) for verbal responses  
 - 🔊 Text-to-Speech (TTS) for AI interviewer  
-- 📷 Camera-based confidence & body-language analysis  
+- 📷 Experimental exploration of camera-based confidence cues (future research)
 - 📊 Advanced evaluation metrics: clarity, confidence, structure  
 
 ---
@@ -63,10 +63,20 @@ Candidates struggle to know **how they perform**, **where they are weak**, and *
 
 ---
 
-## 👨‍💻 Author
+## 🛠️ Engineering Focus
 
-**Prem Dilliwar  & Bhavesh Yadav**
-  - Flutter Developers | AI-Driven App Builders
+- Clean Flutter architecture with separation of UI, logic, and AI layers  
+- Prompt design for controlled, interview-style AI behavior  
+- Extensible design to support future multimodal inputs  
 
+---
 
+## 👨‍💻 Maintainer
 
+**Prem Dilliwar**  
+Flutter Developer | AI-Driven App Builder
+
+---
+
+### 🤝 Acknowledgements
+Early discussions and initial contributions were made with **Bhavesh Yadav**.
