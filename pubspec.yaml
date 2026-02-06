@@ -1,0 +1,27 @@
+name: interview_app
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.9.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  go_router: ^17.0.1
+  flutter_bloc: ^9.1.1
+  bloc: ^9.2.0
+  responsive_builder: ^0.7.1
+  flutter_screenutil: ^5.9.3
+  http: ^1.6.0
+    
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+flutter:
+  uses-material-design: true
+  assets:            
+    - assets/image.jpg 
+    - assets/interview.webp
