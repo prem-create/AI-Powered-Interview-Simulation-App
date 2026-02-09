@@ -24,3 +24,9 @@ class CandidateAnswerSubmittedEvent extends CameraInterviewEvent {
 }
 
 class AskInterviewDetailsEvent extends CameraInterviewEvent {}
+
+class SpeakTtsEvent extends CameraInterviewEvent {
+  final String text;
+
+  SpeakTtsEvent({required this.text});
+}

@@ -8,6 +8,7 @@ import 'package:interview_app/pages/camera_interview_page/ui/utils/my_icon_butto
 class LoadingSuccessMobileUi extends StatelessWidget {
   final state;
   final TextEditingController answerController = TextEditingController();
+  
   LoadingSuccessMobileUi({super.key, required this.state});
 
   @override

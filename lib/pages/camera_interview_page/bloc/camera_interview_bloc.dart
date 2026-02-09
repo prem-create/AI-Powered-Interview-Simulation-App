@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:interview_app/pages/camera_interview_page/logic/tts_logic.dart';
 import 'package:interview_app/pages/camera_interview_page/repo/gemini_repo.dart';
 
 import 'package:meta/meta.dart';
@@ -17,6 +19,7 @@ class CameraInterviewBloc
     );
     on<CandidateAnswerSubmittedEvent>(candidateAnswerSubmittedEvent);
     on<AskInterviewDetailsEvent>(askInterviewDetailsEvent);
+    on<SpeakTtsEvent>(speakTtsEvent);
   }
 
   FutureOr<void> startCameraInterviewButtonTappedEvent(
@@ -73,4 +76,16 @@ class CameraInterviewBloc
   ) {
     emit(AskInterviewDetailsState());
   }
+
+  FutureOr<void> speakTtsEvent(
+    SpeakTtsEvent event,
+    Emitter<CameraInterviewState> emit,
+  ) async{
+    TtsLogic ttsLogic = TtsLogic();
+    //initalize
+    ttsLogic.initializeTts();
+    //speak 
+    ttsLogic.speak(text: event.text);
+  }
 }
+

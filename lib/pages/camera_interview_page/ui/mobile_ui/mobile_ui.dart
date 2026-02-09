@@ -45,6 +45,7 @@ class MobileUi extends StatelessWidget {
         }
         //loading success
         else if (state is CameraInterviewLoadingSuccessState) {
+          context.read<CameraInterviewBloc>().add(SpeakTtsEvent(text: state.question));
           return LoadingSuccessMobileUi(state: state);
         }
         //inital view
