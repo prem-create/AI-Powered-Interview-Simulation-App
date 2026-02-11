@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 
 class CameraInterviewResultPage extends StatelessWidget {
   final String result;
@@ -9,7 +10,10 @@ class CameraInterviewResultPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('result'),),
-      body: Text(result),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Markdown(data: result),
+      ),
     );
   }
 }

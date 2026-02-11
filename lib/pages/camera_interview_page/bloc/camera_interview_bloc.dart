@@ -56,19 +56,22 @@ class CameraInterviewBloc
     CandidateAnswerSubmittedEvent event,
     Emitter<CameraInterviewState> emit,
   ) async {
+    TtsLogic tts = TtsLogic();
     emit(CameraInterviewLoadingState());
+    tts.stopSpeaking();
+    
 
     if (event.isEndInterviewButtonTapped) {
-      final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
+      final String? result = await _geminiRepository.sendCandidateAnswer(
         event.answer,
       );
 
-      if (nextQuestion == null) {
+      if (result == null) {
         emit(CameraInterviewLoadingErrorState());
         return;
       }
 
-      emit(CameraInterviewResultState(result: nextQuestion));
+      emit(CameraInterviewResultState(result: result));
     } else {
       final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
         event.answer,
