@@ -58,16 +58,29 @@ class CameraInterviewBloc
   ) async {
     emit(CameraInterviewLoadingState());
 
-    final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
-      event.answer,
-    );
+    if (event.isEndInterviewButtonTapped) {
+      final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
+        event.answer,
+      );
 
-    if (nextQuestion == null) {
-      emit(CameraInterviewLoadingErrorState());
-      return;
+      if (nextQuestion == null) {
+        emit(CameraInterviewLoadingErrorState());
+        return;
+      }
+
+      emit(CameraInterviewResultState(result: nextQuestion));
+    } else {
+      final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
+        event.answer,
+      );
+
+      if (nextQuestion == null) {
+        emit(CameraInterviewLoadingErrorState());
+        return;
+      }
+
+      emit(CameraInterviewLoadingSuccessState(question: nextQuestion));
     }
-
-    emit(CameraInterviewLoadingSuccessState(question: nextQuestion));
   }
 
   FutureOr<void> askInterviewDetailsEvent(
@@ -80,12 +93,11 @@ class CameraInterviewBloc
   FutureOr<void> speakTtsEvent(
     SpeakTtsEvent event,
     Emitter<CameraInterviewState> emit,
-  ) async{
+  ) async {
     TtsLogic ttsLogic = TtsLogic();
     //initalize
     ttsLogic.initializeTts();
-    //speak 
+    //speak
     ttsLogic.speak(text: event.text);
   }
 }
-

@@ -38,11 +38,12 @@ class MyIconButton extends StatelessWidget {
             ),
           ),
           20.wt,
+          //End Interview Button
           MyIconElevatedButton(
             onPressed: () {
               final String answer = 'End Interview';
               context.read<CameraInterviewBloc>().add(
-                CandidateAnswerSubmittedEvent(answer: answer),
+                CandidateAnswerSubmittedEvent(answer: answer,isEndInterviewButtonTapped: true),
               );
             },
             iconData: Icons.cancel_sharp,

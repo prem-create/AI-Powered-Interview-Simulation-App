@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
+import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/camera_interview_result_page.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/initial_mobile_ui.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/loading_success_mobile_ui.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/initial_interview_detials_alert_box.dart';
@@ -25,6 +26,10 @@ class MobileUi extends StatelessWidget {
         //loading
         if (state is CameraInterviewLoadingState) {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        else if(state is CameraInterviewResultState){
+          // context.go('cameraInterviewResultPage');
+          return CameraInterviewResultPage(result: state.result,) ;
         }
         //loading error
         else if (state is CameraInterviewLoadingErrorState) {

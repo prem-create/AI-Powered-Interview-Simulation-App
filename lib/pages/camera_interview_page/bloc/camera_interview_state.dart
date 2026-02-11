@@ -21,3 +21,9 @@ final class CameraInterviewLoadingSuccessState extends CameraInterviewState {
 }
 
 final class AskInterviewDetailsState extends CameraInterviewActionState {}
+
+final class CameraInterviewResultState extends CameraInterviewState {
+  final String result;
+
+  CameraInterviewResultState({required this.result});
+}

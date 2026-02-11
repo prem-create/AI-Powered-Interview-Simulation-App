@@ -19,8 +19,12 @@ class StartCameraInterviewButtonTappedEvent extends CameraInterviewEvent {
 
 class CandidateAnswerSubmittedEvent extends CameraInterviewEvent {
   final String answer;
+  bool isEndInterviewButtonTapped;
 
-  CandidateAnswerSubmittedEvent({required this.answer});
+  CandidateAnswerSubmittedEvent({
+    required this.answer,
+    this.isEndInterviewButtonTapped = false,
+  });
 }
 
 class AskInterviewDetailsEvent extends CameraInterviewEvent {}

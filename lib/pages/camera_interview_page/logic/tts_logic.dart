@@ -25,4 +25,5 @@ class TtsLogic {
   void speak({required final String text}) {
     tts.speak(text);
   }
+  
 }

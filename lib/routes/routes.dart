@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart';
+import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/camera_interview_result_page.dart';
 import 'package:interview_app/pages/mcq_page/screens/quiz_screen.dart';
 import 'package:interview_app/pages/mcq_page/screens/result_screen.dart';
 import 'package:interview_app/pages/talk_to_ai_page/ui/start_talk_to_ai.dart';
@@ -28,11 +29,16 @@ final GoRouter router = GoRouter(
       builder: (context, state) => const QuizScreen(),
     ),
     GoRoute(
-  path: '/result/:score',
-  builder: (context, state) {
-    final score = int.parse(state.pathParameters['score']!);
-    return ResultScreen(score: score);
-  },
-),
+      path: '/result/:score',
+      builder: (context, state) {
+        final score = int.parse(state.pathParameters['score']!);
+        return ResultScreen(score: score);
+      },
+    ),
+    // GoRoute(
+    //   name: 'cameraInterviewResultPage',
+    //   path: '/cameraInterviewResultPage',
+    //   builder: (context, state) => const CameraInterviewResultPage(result: state,),
+    // ),
   ],
 );
