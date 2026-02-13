@@ -1,11 +1,11 @@
 import 'dart:developer';
-
 import 'package:flutter/widgets.dart';
-import 'package:text_to_speech/text_to_speech.dart';
+import 'package:flutter_tts/flutter_tts.dart';
+
 
 class TtsLogic {
   //single tts instance for all
-  TextToSpeech tts = TextToSpeech();
+  FlutterTts tts = FlutterTts();
 
   String Language = '';
   double pitch = 1;
@@ -18,7 +18,7 @@ class TtsLogic {
   }
 
   void initLanguages() async {
-    Language = await tts.getDefaultLanguage() ?? 'Eng-Us';
+    Language = await tts.getDefaultEngine ?? 'Eng-Us';
     log(Language);
   }
 
