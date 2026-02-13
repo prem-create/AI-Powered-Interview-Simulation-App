@@ -1,34 +1,65 @@
+// ============================================================================
+// GEMINI REPOSITORY - AI Communication for Chat Feature
+// ============================================================================
+// Handles Gemini AI communication for text-based chat interview
+// Similar to camera interview repository but with conversational prompt
+// 
+// KEY DIFFERENCES FROM CAMERA INTERVIEW REPO:
+// 1. Casual, friendly tone instead of formal interviewer
+// 2. No strict interview structure
+// 3. More flexible conversation flow
+// 4. Shorter, concise responses (2-5 sentences)
+// 
+// CONVERSATION FLOW:
+// 1. startChat() → Initialize with conversational prompt
+// 2. sendToGemini() → Send message history, get AI reply
+// 3. sendCandidateAnswer() → Add user message and get response
+// 
+// TODO: Add conversation export feature
+// TODO: Implement message editing/deletion
+// TODO: Add conversation templates for different topics
+// ============================================================================
+
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:interview_app/core/constants/constants.dart';
 
+/// Repository for managing Gemini AI communication in chat mode
 class GeminiRepository {
+  // Conversation memory - stores all chat messages
   final List<Map<String, dynamic>> _contents = [];
 
+  // Gemini API endpoint
   Uri url = Uri.parse(
     'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent',
   );
 
+  /// Sends conversation to Gemini and receives AI response
+  /// Returns: AI's reply or null if error occurs
   Future<String?> sendToGemini() async {
     final body = jsonEncode({"contents": _contents});
 
     try {
       log('body: contents:{${_contents}}');
+      
+      // Make POST request to Gemini API
       final response = await http.post(
         url,
         headers: {
           //it won't work untill we enter valid api here. i removed the api on purpose
-          'x-goog-api-key': apiKey,
+          'x-goog-api-key': apiKey, // API key from constants
           'Content-Type': 'application/json',
         },
         body: body,
       );
 
+      // Check if request was successful
       if (response.statusCode == 200) {
         final Map<String, dynamic> result = jsonDecode(response.body);
         log(response.body);
 
+        // Extract AI response from JSON structure
         final candidates = result["candidates"];
         if (candidates == null || candidates.isEmpty) {
           log("No candidates in response: $result");
@@ -48,7 +79,7 @@ class GeminiRepository {
           return null;
         }
 
-        // Store Gemini reply in memory
+        // Store Gemini reply in memory for conversation context
         _contents.add({
           "role": "model",
           "parts": [
@@ -68,6 +99,7 @@ class GeminiRepository {
     }
   }
 
+  /// Adds user message to conversation memory
   void addCandidateAnswer(String answer) {
     _contents.add({
       "role": "user",
@@ -77,6 +109,8 @@ class GeminiRepository {
     });
   }
 
+  /// Convenience method: Add user message and get AI response
+  /// Returns: AI's reply to the user's message
   Future<String?> sendCandidateAnswer(String answer) async {
     // 1. Add candidate message to memory
     addCandidateAnswer(answer);
@@ -90,9 +124,20 @@ class GeminiRepository {
     return geminiReply;
   }
 
+  /// Initializes chat session with conversational prompt
+  /// Sets up AI as friendly chat companion (not formal interviewer)
+  /// 
+  /// PROMPT DESIGN:
+  /// - Natural, friendly conversation
+  /// - Concise responses (2-5 sentences)
+  /// - Helpful but not intrusive
+  /// - Maintains context throughout chat
+  /// - No sensitive information requests
   void startChat() {
+    // Clear previous conversation
     _contents.clear();
 
+    // Add system prompt for conversational AI
     _contents.add({
       "role": "user",
       "parts": [
