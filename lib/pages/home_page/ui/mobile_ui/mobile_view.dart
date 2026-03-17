@@ -1,4 +1,6 @@
 //mobile view
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -26,6 +28,13 @@ class MobileView extends StatelessWidget {
         if (state is ApiKeyState) {
           final TextEditingController apiKeyController =
               TextEditingController();
+              //demo to test speech to text
+
+              // apiKeyController.text= 'AIzaSyCzGPHAi_8bqV34cycS9tiNkPcbA6zSLpU';
+              if(apiKeyController.text.isNotEmpty){
+                log('api key is not empty');
+                context.read<HomeBloc>().add(ApiKeyRecievedEvent());
+              }
           return Scaffold(
             body: Center(
               child: ElevatedButton(

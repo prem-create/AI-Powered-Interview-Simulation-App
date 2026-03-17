@@ -30,6 +30,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:interview_app/core/constants/constants.dart';
+import 'package:flutter/material.dart';
 
 /// Repository for managing Gemini AI communication during camera interview
 class GeminiRepository {
@@ -63,7 +64,7 @@ class GeminiRepository {
 
       // Check if request was successful
       if (response.statusCode == 200) {
-        final Map<String, dynamic>> result = jsonDecode(response.body);
+        final Map<String, dynamic> result = jsonDecode(response.body);
         log(response.body);
 
         // Extract AI response from nested JSON structure

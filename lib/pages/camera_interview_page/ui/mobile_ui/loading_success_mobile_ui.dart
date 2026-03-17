@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +11,6 @@ class LoadingSuccessMobileUi extends StatelessWidget {
   final TextEditingController answerController = TextEditingController();
   
   LoadingSuccessMobileUi({super.key, required this.state});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,6 +66,7 @@ class LoadingSuccessMobileUi extends StatelessWidget {
                               if (value.trim().isEmpty) return;
 
                               // Call BLoC to handle candidate answer
+                              log('rebuild cause');
                               context.read<CameraInterviewBloc>().add(
                                 CandidateAnswerSubmittedEvent(answer: value),
                               );

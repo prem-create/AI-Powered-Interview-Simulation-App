@@ -46,6 +46,7 @@ class TtsLogic {
   /// Falls back to 'Eng-Us' if no default engine found
   void initLanguages() async {
     Language = await tts.getDefaultEngine ?? 'Eng-Us';
+    log('language');
     log(Language);
   }
 
