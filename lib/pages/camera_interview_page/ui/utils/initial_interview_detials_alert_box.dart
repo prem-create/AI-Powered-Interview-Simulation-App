@@ -32,8 +32,10 @@ Future<void> InitialInterviewDetialsAlertBox({
               ),
 
               DropdownButton(
+                isExpanded: true,
                 value: difficultyLevel,
-                hint: Text('Beginner, Intermediate, Advanced'),
+                hint: Text('Beginner, Intermediate, Advanced',overflow: TextOverflow.ellipsis,),
+                
                 items: [
                   DropdownMenuItem(child: Text('Beginner'), value: 'Beginner'),
                   DropdownMenuItem(

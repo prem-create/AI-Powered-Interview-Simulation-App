@@ -26,7 +26,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Register event handlers
     on<CameraInterviewButtonClicked>(cameraInterviewButtonClicked);
     on<StartTalkToAiButtonClicked>(startTalkToAiButtonClicked);
-    on<StartMcqButtonClicked>(startMcqButtonClicked);
     on<ApiKeyEvent>(apiKeyEvent);
     on<ApiKeyRecievedEvent>(apiKeyRecievedEvent);
   }
@@ -65,12 +64,4 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeInitial());
   }
 
-  /// Handles MCQ Quiz button click
-  /// Emits action state to navigate to quiz screen
-  FutureOr<void> startMcqButtonClicked(
-    StartMcqButtonClicked event,
-    Emitter<HomeState> emit,
-  ) {
-    emit(McqActionState());
-  }
 }

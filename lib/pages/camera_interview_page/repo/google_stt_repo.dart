@@ -2,12 +2,18 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:http/http.dart' as http;
+import 'package:interview_app/core/constants/constants.dart';
 
 class GoogleSttRepo {
 
   final url = Uri.parse(
-    'https://speech.googleapis.com/v1/speech:recognize?key=AIzaSyD9iEWqLk1bz5xgW5xAXwFRwn8G-TNrhUI',
+    'https://speech.googleapis.com/v1/speech:recognize?key=$googleCloudSttApiKey',
   );
+  final Map<String,dynamic> config= {
+          "encoding": "FLAC",
+          "languageCode": "en-US",
+          "model": "latest_long"
+        };
 
 
   Future<String?> sendToGoogleStt({required final String base64}) async {
@@ -16,17 +22,14 @@ class GoogleSttRepo {
       url,
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        "config": {
-          "encoding": "FLAC",
-          "languageCode": "en-US",
-          "model": "latest_long"
-        },
+        "config": config,
         "audio": {"content": base64},
       }),
     );
     log(response.statusCode.toString());
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      log(response.body);
 
       final   transcript =
           data['results']?[0]?['alternatives']?[0]?['transcript'];
@@ -41,4 +44,6 @@ class GoogleSttRepo {
       return null;
     }
   }
+
+  
 }

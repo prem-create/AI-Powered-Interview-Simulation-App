@@ -27,8 +27,8 @@ class MyCustomCard extends StatelessWidget {
     return Padding(
       padding:  EdgeInsets.all(10.w),
       child: Container(
-        padding: const EdgeInsets.all(24),
-        width: 350,
+        padding:  EdgeInsets.all(10.w),
+        width: double.infinity,
         decoration: BoxDecoration(
           color: backgroundColor, // Dynamic Color
           borderRadius: BorderRadius.circular(15),

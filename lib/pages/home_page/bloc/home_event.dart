@@ -18,9 +18,6 @@ final class CameraInterviewButtonClicked extends HomeEvent {}
 /// Triggers navigation to text-based chat interview
 final class StartTalkToAiButtonClicked extends HomeEvent {}
 
-/// Event: User clicked MCQ Quiz button
-/// Triggers navigation to multiple choice question test
-final class StartMcqButtonClicked extends HomeEvent {}
 
 /// Event: App needs to validate API key
 /// Triggered on app startup to ensure Gemini API is configured

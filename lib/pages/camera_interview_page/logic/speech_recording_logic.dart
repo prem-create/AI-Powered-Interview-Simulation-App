@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/repo/google_stt_repo.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';

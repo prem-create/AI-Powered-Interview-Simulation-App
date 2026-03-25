@@ -34,6 +34,3 @@ final class StartTalkToAiActionState extends HomeActionState {}
 /// Shows loading or validation UI while checking Gemini API configuration
 final class ApiKeyState extends HomeState {}
 
-/// Action State: Navigate to MCQ Quiz page
-/// Triggers when user wants to take multiple choice test
-final class McqActionState extends HomeActionState {}

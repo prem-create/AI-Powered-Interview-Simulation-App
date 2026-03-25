@@ -48,7 +48,7 @@ class GeminiRepository {
         url,
         headers: {
           //it won't work untill we enter valid api here. i removed the api on purpose
-          'x-goog-api-key': apiKey, // API key from constants
+          'x-goog-api-key': geminiApiKey, // API key from constants
           'Content-Type': 'application/json',
         },
         body: body,

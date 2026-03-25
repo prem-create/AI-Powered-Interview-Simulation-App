@@ -18,10 +18,6 @@
 // - Automatic responsive scaling
 // - Consistent spacing across different screen sizes
 // 
-// TODO: Add more spacing utilities:
-// - Padding extensions
-// - Margin extensions
-// - Gap widgets for Flex layouts
 // ============================================================================
 
 import 'package:flutter/widgets.dart';

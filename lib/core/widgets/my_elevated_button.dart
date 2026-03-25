@@ -58,8 +58,8 @@ class MyElevatedButton extends StatelessWidget {
         ),
         child: Text(
           text,
-          style: const TextStyle(
-            color: Colors.white, // TODO: Use buttontextcolor parameter instead
+          style: TextStyle(
+            color: buttontextcolor, // TODO: Use buttontextcolor parameter instead
             fontWeight: FontWeight.bold,
           ),
         ),

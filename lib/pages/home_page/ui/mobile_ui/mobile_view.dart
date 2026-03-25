@@ -19,8 +19,6 @@ class MobileView extends StatelessWidget {
           context.push('/CameraInterview');
         } else if (state is StartTalkToAiActionState) {
           context.push('/startTalkToAi');
-        } else if (state is McqActionState) {
-          context.push('/Mcq');
         }
       },
       builder: (context, state) {
@@ -28,9 +26,8 @@ class MobileView extends StatelessWidget {
         if (state is ApiKeyState) {
           final TextEditingController apiKeyController =
               TextEditingController();
-              //demo to test speech to text
-
-              // apiKeyController.text= 'AIzaSyCzGPHAi_8bqV34cycS9tiNkPcbA6zSLpU';
+          final TextEditingController googleCloudSttApiKeyController =
+              TextEditingController();
               if(apiKeyController.text.isNotEmpty){
                 log('api key is not empty');
                 context.read<HomeBloc>().add(ApiKeyRecievedEvent());
@@ -50,13 +47,20 @@ class MobileView extends StatelessWidget {
                       TextField(
                         controller: apiKeyController,
                         decoration: InputDecoration(
-                          hintText: "Enter API Key",
+                          hintText: "Enter Gemini API Key",
+                        ),
+                      ),
+                      TextField(
+                        controller: googleCloudSttApiKeyController,
+                        decoration: InputDecoration(
+                          hintText: "Enter Google Cloud Stt API Key",
                         ),
                       ),
                       TextButton(
                         onPressed: () {
-                          apiKey = apiKeyController.text;
-                          if(apiKey.isEmpty){
+                          geminiApiKey = apiKeyController.text;
+                          googleCloudSttApiKey = googleCloudSttApiKeyController.text;
+                          if(geminiApiKey.isEmpty && googleCloudSttApiKey.isEmpty){
                             context.pop();
                           }else{
                             parentContext.read<HomeBloc>().add(ApiKeyRecievedEvent());
@@ -113,18 +117,6 @@ class MobileView extends StatelessWidget {
                     backgroundColor: const Color.fromARGB(255, 219, 226, 246),
                     onPressed: () => context.read<HomeBloc>().add(
                       StartTalkToAiButtonClicked(),
-                    ),
-                  ),
-                  MyCustomCard(
-                    title: 'MCQ',
-                    description:
-                        'Test your knowledge with AI-generated multiple-choice questions on various topics. Strengthen your theoretical understanding.',
-                    buttonText: 'Start MCQ Session',
-                    buttoncolor: const Color.fromARGB(255, 85, 132, 253),
-                    icon: Icons.list,
-                    backgroundColor: const Color.fromARGB(255, 219, 226, 246),
-                    onPressed: () => context.read<HomeBloc>().add(
-                      StartMcqButtonClicked(),
                     ),
                   ),
                 ],

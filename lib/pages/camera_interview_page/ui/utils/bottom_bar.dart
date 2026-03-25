@@ -4,17 +4,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:interview_app/core/extensions/sized_box_extension.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/logic/speech_recording_logic.dart';
-import 'package:interview_app/pages/camera_interview_page/repo/google_stt_repo.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/my_icon_elevated_button.dart';
 
-class MyIconButton extends StatefulWidget {
-  MyIconButton({super.key});
+class BottomBar extends StatefulWidget {
+  BottomBar({super.key});
 
   @override
-  State<MyIconButton> createState() => _MyIconButtonState();
+  State<BottomBar> createState() => _BottomBarState();
 }
 
-class _MyIconButtonState extends State<MyIconButton> {
+class _BottomBarState extends State<BottomBar> {
   final SpeechRecordingLogic record = SpeechRecordingLogic();
   bool isMicOn = false;
   @override
@@ -81,7 +80,7 @@ class _MyIconButtonState extends State<MyIconButton> {
               );
             },
             iconData: Icons.cancel_sharp,
-            IconSize: 15.sp,
+            IconSize: 20.sp,
             text: 'End Session',
             buttoncolor: Colors.red,
             textcolor: Colors.white,

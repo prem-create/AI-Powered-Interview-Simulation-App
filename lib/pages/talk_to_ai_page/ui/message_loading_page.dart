@@ -37,8 +37,33 @@ class MessageLoadingPage extends StatelessWidget {
                 child: ListView.builder(
                   itemCount: state.responseMessage.length + 1,
                   itemBuilder: (context, index) {
+                    // If it's the last item → show typing
+                    if (index == state.responseMessage.length) {
+                      return Container(
+                        alignment: Alignment.centerLeft,
+                        padding: EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 16.0,
+                        ),
+                        child: Container(
+                          width: 300.w,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          padding: EdgeInsets.all(12.0),
+                          child: Text('Typing...'),
+                        ),
+                      );
+                    }
+
+                    // Otherwise show actual messages
+                    final message = state.responseMessage[index];
+
                     return Container(
-                      alignment: Alignment.centerLeft,
+                      alignment: message['isUser']
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       padding: EdgeInsets.symmetric(
                         vertical: 10.0,
                         horizontal: 16.0,
@@ -46,13 +71,19 @@ class MessageLoadingPage extends StatelessWidget {
                       child: Container(
                         width: 300.w,
                         decoration: BoxDecoration(
-                          color: Colors.grey[300],
+                          color: message['isUser']
+                              ? Colors.blueAccent
+                              : Colors.grey[300],
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         padding: EdgeInsets.all(12.0),
                         child: Text(
-                          'Typing...',
-                          style: TextStyle(color: Colors.black),
+                          message['text'].toString(),
+                          style: TextStyle(
+                            color: message['isUser']
+                                ? Colors.white
+                                : Colors.black,
+                          ),
                         ),
                       ),
                     );
