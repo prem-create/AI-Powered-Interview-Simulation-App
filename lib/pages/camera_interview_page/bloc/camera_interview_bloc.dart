@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/pages/camera_interview_page/logic/tts_logic.dart';
 import 'package:interview_app/pages/camera_interview_page/repo/gemini_repo.dart';
 import 'package:interview_app/pages/camera_interview_page/services/gemini_api_service.dart';
@@ -26,7 +27,7 @@ class CameraInterviewBloc
       startCameraInterviewButtonTappedEvent,
     );
 
-    //Candidate stopped speaking 
+    //Candidate stopped speaking
     on<CandidateAnswerSubmittedEvent>(candidateAnswerSubmittedEvent);
 
     on<SpeakTtsEvent>(speakTtsEvent);
@@ -62,9 +63,10 @@ class CameraInterviewBloc
     );
 
     //sendToGemini will make a api call using the json body we created above
-    final String? firstQuestion = await _geminiRepository.sendToGemini()??'testing';
+    final String? firstQuestion =
+        await _geminiRepository.sendToGemini() ?? 'testing';
 
-//if question is empty launch error state
+    //if question is empty launch error state
     if (firstQuestion == null) {
       emit(CameraInterviewLoadingErrorState());
       return;
@@ -73,7 +75,7 @@ class CameraInterviewBloc
     emit(CameraInterviewLoadingSuccessState(question: firstQuestion));
   }
 
- // when user complete answering
+  // when user complete answering
   FutureOr<void> candidateAnswerSubmittedEvent(
     CandidateAnswerSubmittedEvent event,
     Emitter<CameraInterviewState> emit,
@@ -89,7 +91,7 @@ class CameraInterviewBloc
         emit(CameraInterviewLoadingErrorState());
         return;
       }
-
+      resultHistory.add(result);;
       emit(CameraInterviewResultState(result: result));
     } else {
       final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(

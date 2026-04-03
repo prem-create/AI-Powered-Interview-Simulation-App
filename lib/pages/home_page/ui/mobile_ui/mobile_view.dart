@@ -22,16 +22,16 @@ class MobileView extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        final parentContext =context;
+        final parentContext = context;
         if (state is ApiKeyState) {
           final TextEditingController apiKeyController =
               TextEditingController();
           final TextEditingController googleCloudSttApiKeyController =
               TextEditingController();
-              if(apiKeyController.text.isNotEmpty){
-                log('api key is not empty');
-                context.read<HomeBloc>().add(ApiKeyRecievedEvent());
-              }
+          if (apiKeyController.text.isNotEmpty) {
+            log('api key is not empty');
+            context.read<HomeBloc>().add(ApiKeyRecievedEvent());
+          }
           return Scaffold(
             body: Center(
               child: ElevatedButton(
@@ -59,11 +59,15 @@ class MobileView extends StatelessWidget {
                       TextButton(
                         onPressed: () {
                           geminiApiKey = apiKeyController.text;
-                          googleCloudSttApiKey = googleCloudSttApiKeyController.text;
-                          if(geminiApiKey.isEmpty && googleCloudSttApiKey.isEmpty){
+                          googleCloudSttApiKey =
+                              googleCloudSttApiKeyController.text;
+                          if (geminiApiKey.isEmpty &&
+                              googleCloudSttApiKey.isEmpty) {
                             context.pop();
-                          }else{
-                            parentContext.read<HomeBloc>().add(ApiKeyRecievedEvent());
+                          } else {
+                            parentContext.read<HomeBloc>().add(
+                              ApiKeyRecievedEvent(),
+                            );
                             context.pop();
                           }
                         },
@@ -75,55 +79,57 @@ class MobileView extends StatelessWidget {
               ),
             ),
           );
-        }
-        else if(state is HomeInitial){
+        } else if (state is HomeInitial) {
           return Scaffold(
-          appBar: AppBar(
-            leading: IconButton(onPressed: () {}, icon: Icon(Icons.person)),
-            title: Padding(
-              padding: const EdgeInsets.only(left: 40),
-              child: Text(
-                "AI Interview Coach",
-                style: TextStyle(fontWeight: FontWeight.bold),
+            appBar: AppBar(
+              leading: IconButton(
+                onPressed: () => context.push('/resultHistory'),
+                icon: Icon(Icons.assessment),
               ),
+              title: Padding(
+                padding: const EdgeInsets.only(left: 40),
+                child: Text(
+                  "AI Interview Coach",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ),
+              backgroundColor: Colors.white,
             ),
-            backgroundColor: Colors.white,
-          ),
-          backgroundColor: const Color.fromARGB(255, 234, 240, 249),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  MyCustomCard(
-                    title: 'Start Interview',
-                    description:
-                        "Practice live interviews with AI, focusing on visual cues and real-time feedback. Get personalized suggestions for improvement",
-                    buttonText: 'Start camera interveiw',
-                    buttoncolor: const Color(0xFF3F51B5),
-                    icon: Icons.camera_alt_outlined,
-                    backgroundColor: const Color.fromARGB(255, 219, 226, 246),
-                    onPressed: () => context.read<HomeBloc>().add(
-                      CameraInterviewButtonClicked(),
+            backgroundColor: const Color.fromARGB(255, 234, 240, 249),
+            body: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    MyCustomCard(
+                      title: 'Start Interview',
+                      description:
+                          "Practice live interviews with AI, focusing on visual cues and real-time feedback. Get personalized suggestions for improvement",
+                      buttonText: 'Start camera interveiw',
+                      buttoncolor: const Color(0xFF3F51B5),
+                      icon: Icons.camera_alt_outlined,
+                      backgroundColor: const Color.fromARGB(255, 219, 226, 246),
+                      onPressed: () => context.read<HomeBloc>().add(
+                        CameraInterviewButtonClicked(),
+                      ),
                     ),
-                  ),
 
-                  MyCustomCard(
-                    title: 'Talk to AI',
-                    description:
-                        'Engage in voice or chat-based conversations with AI for flexible practice sessions. Refine your verbal responses.',
-                    buttonText: 'Start Talk to AI',
-                    buttoncolor: const Color(0xFF25D1F4),
-                    icon: Icons.mic,
-                    backgroundColor: const Color.fromARGB(255, 219, 226, 246),
-                    onPressed: () => context.read<HomeBloc>().add(
-                      StartTalkToAiButtonClicked(),
+                    MyCustomCard(
+                      title: 'Talk to AI',
+                      description:
+                          'Engage in voice or chat-based conversations with AI for flexible practice sessions. Refine your verbal responses.',
+                      buttonText: 'Start Talk to AI',
+                      buttoncolor: const Color(0xFF25D1F4),
+                      icon: Icons.mic,
+                      backgroundColor: const Color.fromARGB(255, 219, 226, 246),
+                      onPressed: () => context.read<HomeBloc>().add(
+                        StartTalkToAiButtonClicked(),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        );
+          );
         } else {
           return SizedBox.shrink();
         }

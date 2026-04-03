@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/core/extensions/sized_box_extension.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/logic/speech_recording_logic.dart';
@@ -47,6 +48,7 @@ class _BottomBarState extends State<BottomBar> {
                   final transcript = await record.stopRecording(); // ✅ await
 
                   if (transcript != null) {
+                    userTranscription = transcript;
                     context.read<CameraInterviewBloc>().add(
                       CandidateAnswerSubmittedEvent(answer: transcript),
                     );

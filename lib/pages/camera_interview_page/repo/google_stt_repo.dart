@@ -11,7 +11,7 @@ class GoogleSttRepo {
   );
   final Map<String,dynamic> config= {
           "encoding": "FLAC",
-          "languageCode": "en-US",
+          "languageCode": "en-IN",
           "model": "latest_long"
         };
 

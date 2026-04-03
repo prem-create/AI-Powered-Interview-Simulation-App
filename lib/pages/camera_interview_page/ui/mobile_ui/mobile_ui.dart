@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/camera_interview_result_page.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/initial_mobile_ui.dart';
@@ -40,6 +41,9 @@ class MobileUi extends StatelessWidget {
                 IconButton(
                   icon: Icon(Icons.refresh),
                   onPressed: () {
+                    context.read<CameraInterviewBloc>().add(
+                      CandidateAnswerSubmittedEvent(answer: userTranscription),
+                    );
                     context.pop();
                   },
                 ),
