@@ -1,5 +1,5 @@
-late String geminiApiKey;
-late String googleCloudSttApiKey;
+ String geminiApiKey='';
+ String googleCloudSttApiKey='';
 
 // TODO: remove this temporary thing in v2
 late String userTranscription;

@@ -28,6 +28,7 @@ class MobileView extends StatelessWidget {
               TextEditingController();
           final TextEditingController googleCloudSttApiKeyController =
               TextEditingController();
+
           if (apiKeyController.text.isNotEmpty) {
             log('api key is not empty');
             context.read<HomeBloc>().add(ApiKeyRecievedEvent());
@@ -36,46 +37,49 @@ class MobileView extends StatelessWidget {
             body: Center(
               child: ElevatedButton(
                 child: Text('start the demo'),
-                onPressed: () => showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text("Enter Your Api key"),
-                    content: Text(
-                      "Don't worry entering api key here is safe. Your api key won't be stored anywhere. it's just to bypass buying paid api from google cloud console for demo purpose.",
-                    ),
-                    actions: [
-                      TextField(
-                        controller: apiKeyController,
-                        decoration: InputDecoration(
-                          hintText: "Enter Gemini API Key",
+                onPressed: () =>
+                    (geminiApiKey.isNotEmpty && googleCloudSttApiKey.isNotEmpty)
+                    ? context.read<HomeBloc>().add(ApiKeyRecievedEvent())
+                    : showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: Text("Enter Your Api key"),
+                          content: Text(
+                            "Don't worry entering api key here is safe. Your api key won't be stored anywhere. it's just to bypass buying paid api from google cloud console for demo purpose.",
+                          ),
+                          actions: [
+                            TextField(
+                              controller: apiKeyController,
+                              decoration: InputDecoration(
+                                hintText: "Enter Gemini API Key",
+                              ),
+                            ),
+                            TextField(
+                              controller: googleCloudSttApiKeyController,
+                              decoration: InputDecoration(
+                                hintText: "Enter Google Cloud Stt API Key",
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                geminiApiKey = apiKeyController.text;
+                                googleCloudSttApiKey =
+                                    googleCloudSttApiKeyController.text;
+                                if (geminiApiKey.isEmpty &&
+                                    googleCloudSttApiKey.isEmpty) {
+                                  context.pop();
+                                } else {
+                                  parentContext.read<HomeBloc>().add(
+                                    ApiKeyRecievedEvent(),
+                                  );
+                                  context.pop();
+                                }
+                              },
+                              child: Text("OK"),
+                            ),
+                          ],
                         ),
                       ),
-                      TextField(
-                        controller: googleCloudSttApiKeyController,
-                        decoration: InputDecoration(
-                          hintText: "Enter Google Cloud Stt API Key",
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          geminiApiKey = apiKeyController.text;
-                          googleCloudSttApiKey =
-                              googleCloudSttApiKeyController.text;
-                          if (geminiApiKey.isEmpty &&
-                              googleCloudSttApiKey.isEmpty) {
-                            context.pop();
-                          } else {
-                            parentContext.read<HomeBloc>().add(
-                              ApiKeyRecievedEvent(),
-                            );
-                            context.pop();
-                          }
-                        },
-                        child: Text("OK"),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           );

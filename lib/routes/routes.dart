@@ -14,8 +14,7 @@
 // ============================================================================
 
 import 'package:go_router/go_router.dart';
-import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart';
-import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/camera_interview_result_page.dart';
+import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart'               ;
 import 'package:interview_app/pages/resutl_History_page/histroy_page.dart';
 import 'package:interview_app/pages/resutl_History_page/result_history_page.dart';
 import 'package:interview_app/pages/talk_to_ai_page/ui/start_talk_to_ai.dart';

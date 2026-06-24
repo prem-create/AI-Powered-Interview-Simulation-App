@@ -20,6 +20,10 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
           : ListView.builder(
               itemCount: count,
               itemBuilder: (context, index) {
+                String preview = resultHistory[index].replaceAll(
+                  RegExp(r'[#*_`>-]'),
+                  '',
+                ).trim();
                 return InkWell(
                   onTap: () {
                     context.push("/historyPage", extra: resultHistory[index]);
@@ -32,10 +36,10 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
                       child: Column(
                         children: [
                           Text(
-                            ' ${resultHistory[index]}',
+                            '${preview}',
                             maxLines: 5,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle( fontSize: 12),
+                            style: TextStyle(fontSize: 12),
                           ),
                         ],
                       ),

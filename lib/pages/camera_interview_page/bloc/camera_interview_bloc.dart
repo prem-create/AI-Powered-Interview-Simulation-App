@@ -63,16 +63,20 @@ class CameraInterviewBloc
     );
 
     //sendToGemini will make a api call using the json body we created above
-    final String? firstQuestion =
-        await _geminiRepository.sendToGemini() ?? 'testing';
+    final firstQuestion = await _geminiRepository.sendToGemini();
 
     //if question is empty launch error state
-    if (firstQuestion == null) {
-      emit(CameraInterviewLoadingErrorState());
+    if (!firstQuestion.isSuccess) {
+      emit(
+        CameraInterviewLoadingErrorState(
+          errorMessage:
+              firstQuestion.errorMessage ?? 'Unable to load question.',
+        ),
+      );
       return;
     }
 
-    emit(CameraInterviewLoadingSuccessState(question: firstQuestion));
+    emit(CameraInterviewLoadingSuccessState(question: firstQuestion.data!));
   }
 
   // when user complete answering
@@ -83,27 +87,34 @@ class CameraInterviewBloc
     emit(CameraInterviewLoadingState());
 
     if (event.isEndInterviewButtonTapped) {
-      final String? result = await _geminiRepository.sendCandidateAnswer(
-        event.answer,
-      );
+      final result = await _geminiRepository.sendCandidateAnswer(event.answer);
 
-      if (result == null) {
-        emit(CameraInterviewLoadingErrorState());
+      if (!result.isSuccess) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: result.errorMessage ?? 'Unable to generate result.',
+          ),
+        );
         return;
       }
-      resultHistory.add(result);;
-      emit(CameraInterviewResultState(result: result));
+      resultHistory.add(result.data!);
+      emit(CameraInterviewResultState(result: result.data!));
     } else {
-      final String? nextQuestion = await _geminiRepository.sendCandidateAnswer(
+      final nextQuestion = await _geminiRepository.sendCandidateAnswer(
         event.answer,
       );
 
-      if (nextQuestion == null) {
-        emit(CameraInterviewLoadingErrorState());
+      if (!nextQuestion.isSuccess) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage:
+                nextQuestion.errorMessage ?? 'Unable to load next question.',
+          ),
+        );
         return;
       }
 
-      emit(CameraInterviewLoadingSuccessState(question: nextQuestion));
+      emit(CameraInterviewLoadingSuccessState(question: nextQuestion.data!));
     }
   }
 

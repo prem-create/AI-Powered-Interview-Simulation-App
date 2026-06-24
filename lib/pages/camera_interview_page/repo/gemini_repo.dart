@@ -1,3 +1,5 @@
+import 'package:interview_app/core/utils/errors_handler.dart';
+
 import '../models/message_model.dart';
 import '../models/gemini_response_model.dart';
 import '../services/gemini_api_service.dart';
@@ -20,7 +22,8 @@ class GeminiRepository {
     _messages.add(
       Message(
         role: "user",
-text: """
+        text:
+            """
 You are a professional technical interviewer.
 
 Interview details:
@@ -96,51 +99,55 @@ Additional Instructions:
 * Focus more on intent and conceptual correctness than exact wording.
 * Do not penalize small grammar or pronunciation-related mistakes.
 * Keep feedback constructive and actionable.
-  """
-
+  """,
       ),
     );
   }
 
   // ================= SEND TO GEMINI =================
-  Future<String?> sendToGemini() async {
+  Future<ApiResult<String>> sendToGemini() async {
     final response = await _apiService.send(
       _messages.map((e) => e.toJson()).toList(),
     );
 
-    if (response == null || response.candidates.isEmpty) return null;
+    if (!response.isSuccess) {
+      return ApiResult.failure(
+        response.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
+        statusCode: response.statusCode,
+      );
+    }
 
-    final reply = _extractText(response);
+    final post = response.data;
+    if (post == null || post.candidates.isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    final reply = _extractText(post);
+    if (reply == null || reply.trim().isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
 
     // store AI reply
-    _messages.add(
-      Message(role: "model", text: reply),
-    );
+    _messages.add(Message(role: "model", text: reply));
 
-    return reply;
+    return ApiResult.success(reply);
   }
 
   // ================= ADD USER ANSWER =================
   void addCandidateAnswer(String answer) {
-    _messages.add(
-      Message(role: "user", text: answer),
-    );
+    _messages.add(Message(role: "user", text: answer));
   }
 
   // ================= MAIN METHOD =================
-  Future<String?> sendCandidateAnswer(String answer) async {
+  Future<ApiResult<String>> sendCandidateAnswer(String answer) async {
     addCandidateAnswer(answer);
     return await sendToGemini();
   }
 
   // ================= HELPER =================
-  String _extractText(Post response) {
-    return response
-        .candidates
-        .first
-        .content
-        .parts
-        .first
-        .text;
+  String? _extractText(Post response) {
+    final parts = response.candidates.first.content.parts;
+    if (parts.isEmpty) return null;
+    return parts.first.text;
   }
 }

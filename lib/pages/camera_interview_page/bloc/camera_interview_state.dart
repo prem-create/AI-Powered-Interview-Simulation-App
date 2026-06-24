@@ -28,7 +28,11 @@ final class CameraInterviewLoadingState extends CameraInterviewState {}
 
 /// State: Error occurred during AI communication
 /// Shows error message to user
-final class CameraInterviewLoadingErrorState extends CameraInterviewState {}
+final class CameraInterviewLoadingErrorState extends CameraInterviewState {
+  final String errorMessage;
+
+  CameraInterviewLoadingErrorState({required this.errorMessage});
+}
 
 /// State: Successfully received question from AI
 /// Displays question and enables TTS to speak it

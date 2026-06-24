@@ -13,24 +13,27 @@ class MobileUi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-      final TextEditingController candidateName = TextEditingController();
+    final TextEditingController candidateName = TextEditingController();
     final TextEditingController interviewTopic = TextEditingController();
     return BlocConsumer<CameraInterviewBloc, CameraInterviewState>(
       listenWhen: (previous, current) => current is CameraInterviewActionState,
       buildWhen: (previous, current) => current is! CameraInterviewActionState,
       listener: (context, state) {
-        if(state is AskInterviewDetailsState){
-          InitialInterviewDetialsAlertBox(candidateName: candidateName, interviewTopic: interviewTopic, parentContext: context);
+        if (state is AskInterviewDetailsState) {
+          InitialInterviewDetialsAlertBox(
+            candidateName: candidateName,
+            interviewTopic: interviewTopic,
+            parentContext: context,
+          );
         }
       },
       builder: (context, state) {
         //loading
         if (state is CameraInterviewLoadingState) {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
-        }
-        else if(state is CameraInterviewResultState){
+        } else if (state is CameraInterviewResultState) {
           // context.go('cameraInterviewResultPage');
-          return CameraInterviewResultPage(result: state.result,) ;
+          return CameraInterviewResultPage(result: state.result);
         }
         //loading error
         else if (state is CameraInterviewLoadingErrorState) {
@@ -49,12 +52,23 @@ class MobileUi extends StatelessWidget {
                 ),
               ],
             ),
-            body: Center(child: Text('loading Error'))
-            );
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  state.errorMessage,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          );
         }
         //loading success
         else if (state is CameraInterviewLoadingSuccessState) {
-          context.read<CameraInterviewBloc>().add(SpeakTtsEvent(text: state.question));
+          context.read<CameraInterviewBloc>().add(
+            SpeakTtsEvent(text: state.question),
+          );
           return LoadingSuccessMobileUi(state: state);
         }
         //inital view
