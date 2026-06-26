@@ -11,6 +11,8 @@ Future<void> InitialInterviewDetialsAlertBox({
 
   required final BuildContext parentContext,
   String? difficultyLevel,
+  String? interviewType,
+  String? yearsOfExperience,
 }) {
   return showDialog(
     context: parentContext,
@@ -34,8 +36,10 @@ Future<void> InitialInterviewDetialsAlertBox({
               DropdownButton(
                 isExpanded: true,
                 value: difficultyLevel,
-                hint: Text('Beginner, Intermediate, Advanced',overflow: TextOverflow.ellipsis,),
-                
+                hint: Text(
+                  'Beginner, Intermediate, Advanced',
+                  overflow: TextOverflow.ellipsis,
+                ),
                 items: [
                   DropdownMenuItem(child: Text('Beginner'), value: 'Beginner'),
                   DropdownMenuItem(
@@ -49,6 +53,59 @@ Future<void> InitialInterviewDetialsAlertBox({
                 },
               ),
 
+              DropdownButton(
+                isExpanded: true,
+                value: interviewType,
+                hint: Text('Interview Type', overflow: TextOverflow.ellipsis),
+                items: [
+                  DropdownMenuItem(
+                    child: Text('Technical'),
+                    value: 'Technical',
+                  ),
+                  DropdownMenuItem(
+                    child: Text('HR / Behavioural'),
+                    value: 'HR / Behavioural',
+                  ),
+                  DropdownMenuItem(
+                    child: Text('System Design'),
+                    value: 'System Design',
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() => interviewType = value);
+                },
+              ),
+
+              DropdownButton(
+                isExpanded: true,
+                value: yearsOfExperience,
+                hint: Text(
+                  'Years of Experience',
+                  overflow: TextOverflow.ellipsis,
+                ),
+                items: [
+                  DropdownMenuItem(
+                    child: Text('Fresher (0-1 years)'),
+                    value: 'Fresher (0-1 years)',
+                  ),
+                  DropdownMenuItem(
+                    child: Text('Junior (1-3 years)'),
+                    value: 'Junior (1-3 years)',
+                  ),
+                  DropdownMenuItem(
+                    child: Text('Mid Level (3-5 years)'),
+                    value: 'Mid Level (3-5 years)',
+                  ),
+                  DropdownMenuItem(
+                    child: Text('Senior (5+ years)'),
+                    value: 'Senior (5+ years)',
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() => yearsOfExperience = value);
+                },
+              ),
+
               MyIconElevatedButton(
                 IconSize: 30,
                 buttoncolor: Colors.green,
@@ -57,6 +114,8 @@ Future<void> InitialInterviewDetialsAlertBox({
                   // check if user input data is null
                   if (candidateName!.text.isEmpty ||
                       difficultyLevel == null ||
+                      interviewType == null ||
+                      yearsOfExperience == null ||
                       interviewTopic!.text.isEmpty) {
                     showDialog(
                       context: parentContext,
@@ -80,6 +139,8 @@ Future<void> InitialInterviewDetialsAlertBox({
                         InterviewTopic: interviewTopic.text,
                         candidateName: candidateName.text,
                         difficultyLevel: difficultyLevel.toString(),
+                        interviewType: interviewType.toString(),
+                        yearsOfExperience: yearsOfExperience.toString(),
                       ),
                     );
                   }

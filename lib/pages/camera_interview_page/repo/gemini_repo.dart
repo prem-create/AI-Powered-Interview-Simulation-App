@@ -16,6 +16,8 @@ class GeminiRepository {
     required String candidateName,
     required String interviewTopic,
     required String difficultyLevel,
+    required String interviewType,
+    required String yearsOfExperience,
   }) {
     _messages.clear();
 
@@ -31,12 +33,14 @@ Interview details:
 * Candidate Name: $candidateName
 * Interview Topic: $interviewTopic
 * Difficulty Level: $difficultyLevel
+* Interview Type: $interviewType
+* Years of Experience: $yearsOfExperience
 
 Instructions:
 
 1. Ask one question at a time.
 2. Keep questions short, clear, and highly TTS-friendly (avoid complex or long sentences).
-3. Stay strictly within the given topic and difficulty level.
+3. Stay strictly within the given topic, difficulty level, interview type, and years of experience.
 4. Use simple wording so speech-to-text systems can accurately capture responses.
 5. Avoid special characters such as quotation marks, asterisks, or symbols that may interfere with TTS or STT.
 6. Prefer commonly spoken forms of technical terms where possible.

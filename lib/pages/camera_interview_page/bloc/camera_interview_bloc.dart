@@ -60,6 +60,8 @@ class CameraInterviewBloc
       interviewTopic: event.InterviewTopic,
       candidateName: event.candidateName,
       difficultyLevel: event.difficultyLevel,
+      interviewType: event.interviewType,
+      yearsOfExperience: event.yearsOfExperience,
     );
 
     //sendToGemini will make a api call using the json body we created above

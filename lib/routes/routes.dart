@@ -15,15 +15,27 @@
 
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/auth/auth_page.dart';
+import 'package:interview_app/pages/auth/repo/auth_repository.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart';
 import 'package:interview_app/pages/resutl_History_page/histroy_page.dart';
 import 'package:interview_app/pages/resutl_History_page/result_history_page.dart';
 import 'package:interview_app/pages/talk_to_ai_page/ui/start_talk_to_ai.dart';
 import 'package:interview_app/pages/home_page/ui/home.dart';
 
+final AuthRepository _authRepository = AuthRepository();
+
 /// Global router instance used by MaterialApp.router
 final GoRouter router = GoRouter(
   initialLocation: '/', // App starts at home page
+  redirect: (context, state) {
+    final isLoginRoute = state.uri.path == '/';
+
+    if (isLoginRoute && _authRepository.isLoggedIn) {
+      return '/home';
+    }
+
+    return null;
+  },
   routes: [
     // ========== HOME PAGE ROUTE ==========
     // Landing page - entry point after app launch

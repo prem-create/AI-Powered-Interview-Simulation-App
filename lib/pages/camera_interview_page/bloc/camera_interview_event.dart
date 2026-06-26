@@ -16,13 +16,19 @@ class CameraInterviewInitialEvent extends CameraInterviewEvent {}
 /// Contains all necessary information to initialize AI interviewer
 class StartCameraInterviewButtonTappedEvent extends CameraInterviewEvent {
   final String candidateName; // Candidate's name for personalization
-  final String InterviewTopic; // Topic/domain for interview (e.g., Flutter, Java)
-  final String difficultyLevel; // Easy, Medium, Hard - adjusts question complexity
+  // Topic/domain for interview (e.g., Flutter, Java)
+  final String InterviewTopic;
+  // Easy, Medium, Hard - adjusts question complexity
+  final String difficultyLevel;
+  final String interviewType; // Technical, HR / Behavioural, or System Design
+  final String yearsOfExperience; // Candidate experience range
 
   StartCameraInterviewButtonTappedEvent({
     required this.candidateName,
     required this.InterviewTopic,
     required this.difficultyLevel,
+    required this.interviewType,
+    required this.yearsOfExperience,
   });
 }
 
