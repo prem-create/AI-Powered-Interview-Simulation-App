@@ -1,10 +1,8 @@
 //mobile view
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/pages/home_page/bloc/home_bloc.dart';
 import 'package:interview_app/pages/home_page/ui/utils/my_custom_card.dart';
 
@@ -22,68 +20,7 @@ class MobileView extends StatelessWidget {
         }
       },
       builder: (context, state) {
-        final parentContext = context;
-        if (state is ApiKeyState) {
-          final TextEditingController apiKeyController =
-              TextEditingController();
-          final TextEditingController googleCloudSttApiKeyController =
-              TextEditingController();
-
-          if (apiKeyController.text.isNotEmpty) {
-            log('api key is not empty');
-            context.read<HomeBloc>().add(ApiKeyRecievedEvent());
-          }
-          return Scaffold(
-            body: Center(
-              child: ElevatedButton(
-                child: Text('start the demo'),
-                onPressed: () =>
-                    (geminiApiKey.isNotEmpty && googleCloudSttApiKey.isNotEmpty)
-                    ? context.read<HomeBloc>().add(ApiKeyRecievedEvent())
-                    : showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text("Enter Your Api key"),
-                          content: Text(
-                            "Don't worry entering api key here is safe. Your api key won't be stored anywhere. it's just to bypass buying paid api from google cloud console for demo purpose.",
-                          ),
-                          actions: [
-                            TextField(
-                              controller: apiKeyController,
-                              decoration: InputDecoration(
-                                hintText: "Enter Gemini API Key",
-                              ),
-                            ),
-                            TextField(
-                              controller: googleCloudSttApiKeyController,
-                              decoration: InputDecoration(
-                                hintText: "Enter Google Cloud Stt API Key",
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                geminiApiKey = apiKeyController.text;
-                                googleCloudSttApiKey =
-                                    googleCloudSttApiKeyController.text;
-                                if (geminiApiKey.isEmpty &&
-                                    googleCloudSttApiKey.isEmpty) {
-                                  context.pop();
-                                } else {
-                                  parentContext.read<HomeBloc>().add(
-                                    ApiKeyRecievedEvent(),
-                                  );
-                                  context.pop();
-                                }
-                              },
-                              child: Text("OK"),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ),
-          );
-        } else if (state is HomeInitial) {
+        if (state is HomeInitial) {
           return Scaffold(
             appBar: AppBar(
               leading: IconButton(

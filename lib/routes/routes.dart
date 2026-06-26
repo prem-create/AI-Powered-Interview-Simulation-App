@@ -14,7 +14,8 @@
 // ============================================================================
 
 import 'package:go_router/go_router.dart';
-import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart'               ;
+import 'package:interview_app/pages/auth/auth_page.dart';
+import 'package:interview_app/pages/camera_interview_page/ui/camera_interview.dart';
 import 'package:interview_app/pages/resutl_History_page/histroy_page.dart';
 import 'package:interview_app/pages/resutl_History_page/result_history_page.dart';
 import 'package:interview_app/pages/talk_to_ai_page/ui/start_talk_to_ai.dart';
@@ -26,7 +27,8 @@ final GoRouter router = GoRouter(
   routes: [
     // ========== HOME PAGE ROUTE ==========
     // Landing page - entry point after app launch
-    GoRoute(path: '/', builder: (context, state) => const Home()),
+    GoRoute(path: '/', builder: (context, state) => const AuthPage()),
+    GoRoute(path: '/home', builder: (context, state) => const Home()),
 
     // ========== CAMERA INTERVIEW ROUTE ==========
     // AI-powered interview with text-to-speech and speech-to-text

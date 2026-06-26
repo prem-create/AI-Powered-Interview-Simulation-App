@@ -2,12 +2,12 @@
 // HOME PAGE - Landing Screen with Feature Selection
 // ============================================================================
 // This is the main landing page where users choose their interview practice mode
-// 
+//
 // FEATURES AVAILABLE:
 // 1. Camera Interview - AI-powered interview with voice interaction
 // 2. Talk to AI - Text-based chat interview practice
 // 3. MCQ Quiz - Multiple choice question assessment
-// 
+//
 // STATE MANAGEMENT: Uses BLoC pattern
 // - HomeBloc manages navigation events and API key validation
 // - Responsive design adapts to mobile/tablet/desktop screens
@@ -36,9 +36,6 @@ class _HomeState extends State<Home> {
     return BlocProvider(
       create: (context) {
         final bloc = HomeBloc();
-        // Trigger API key validation event on page load
-        // This ensures Gemini API is configured before user starts interview
-        bloc.add(ApiKeyEvent());
         return bloc;
       },
       // ScreenTypeLayout: Renders different UI based on device type

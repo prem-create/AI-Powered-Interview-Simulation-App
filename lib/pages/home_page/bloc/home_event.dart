@@ -19,10 +19,6 @@ final class CameraInterviewButtonClicked extends HomeEvent {}
 final class StartTalkToAiButtonClicked extends HomeEvent {}
 
 
-/// Event: App needs to validate API key
-/// Triggered on app startup to ensure Gemini API is configured
-final class ApiKeyEvent extends HomeEvent {}
 
-/// Event: API key validation completed successfully
-/// Returns user to home screen after validation
-final class ApiKeyRecievedEvent extends HomeEvent {}
+
+

@@ -2,12 +2,12 @@
 // HOME BLOC - Business Logic for Home Page
 // ============================================================================
 // Manages state and events for the home page navigation
-// 
+//
 // RESPONSIBILITIES:
 // 1. Handle button clicks for different interview modes
 // 2. Validate API key before allowing access to AI features
 // 3. Emit navigation states to trigger route changes
-// 
+//
 // EVENT FLOW:
 // User clicks button → Event dispatched → BLoC processes → State emitted → UI reacts
 // ============================================================================
@@ -26,8 +26,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Register event handlers
     on<CameraInterviewButtonClicked>(cameraInterviewButtonClicked);
     on<StartTalkToAiButtonClicked>(startTalkToAiButtonClicked);
-    on<ApiKeyEvent>(apiKeyEvent);
-    on<ApiKeyRecievedEvent>(apiKeyRecievedEvent);
   }
 
   /// Handles Camera Interview button click
@@ -47,21 +45,4 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   ) {
     emit(StartTalkToAiActionState());
   }
-
-  /// Validates API key on app startup
-  /// Ensures Gemini API is configured before user can access AI features
-  /// TODO: Add actual API key validation logic with error handling
-  FutureOr<void> apiKeyEvent(ApiKeyEvent event, Emitter<HomeState> emit) {
-    emit(ApiKeyState());
-  }
-
-  /// Handles successful API key validation
-  /// Returns to initial home state after validation
-  FutureOr<void> apiKeyRecievedEvent(
-    ApiKeyRecievedEvent event,
-    Emitter<HomeState> emit,
-  ) {
-    emit(HomeInitial());
-  }
-
 }
