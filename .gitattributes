@@ -1,0 +1,23 @@
+# Flutter generated files - exclude from language stats
+*.html linguist-generated=true
+*.css linguist-generated=true
+*.js linguist-generated=true
+
+# Flutter native build files
+*.cmake linguist-generated=true
+*.gradle linguist-generated=true
+CMakeLists.txt linguist-generated=true
+
+# iOS/macOS generated
+*.pbxproj linguist-generated=true
+*.xcworkspacedata linguist-generated=true
+Podfile linguist-generated=true
+
+# C/C++ Flutter engine files
+*.c linguist-generated=true
+*.cpp linguist-generated=true
+*.h linguist-generated=true
+
+# Swift/Kotlin wrappers (Flutter generated)
+*.swift linguist-vendored=true
+*.kt linguist-vendored=true
