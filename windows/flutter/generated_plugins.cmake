@@ -3,6 +3,9 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  firebase_auth
+  firebase_core
+  firebase_remote_config
   flutter_tts
   record_windows
 )
