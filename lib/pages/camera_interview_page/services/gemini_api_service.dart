@@ -18,6 +18,7 @@ class GeminiApiService {
   Future<ApiResult<Post>> send(
     List<Map<String, dynamic>> contents, {
     GeminiModelTier modelTier = GeminiModelTier.primary,
+    Map<String, dynamic>? generationConfig,
   }) async {
     try {
       if (geminiApiKey.trim().isEmpty) {
@@ -31,9 +32,13 @@ class GeminiApiService {
               'x-goog-api-key': geminiApiKey,
               'Content-Type': 'application/json',
             },
-            body: jsonEncode({"contents": contents}),
+            body: jsonEncode({
+              "contents": contents,
+              if (generationConfig != null)
+                "generationConfig": generationConfig,
+            }),
           )
-          .timeout(const Duration(seconds: 45));
+          .timeout(const Duration(seconds: 30));
       log(response.body);
 
       if (response.statusCode == 200) {
