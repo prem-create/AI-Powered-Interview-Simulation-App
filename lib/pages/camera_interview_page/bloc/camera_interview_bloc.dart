@@ -3,7 +3,10 @@ import 'package:bloc/bloc.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/pages/camera_interview_page/logic/tts_logic.dart';
+import 'package:interview_app/pages/camera_interview_page/models/interview_persistence_exception.dart';
+import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
 import 'package:interview_app/pages/camera_interview_page/repo/gemini_repo.dart';
+import 'package:interview_app/pages/camera_interview_page/repo/interview_persistence_repository.dart';
 import 'package:interview_app/pages/camera_interview_page/services/gemini_api_service.dart';
 import 'package:meta/meta.dart';
 
@@ -12,10 +15,14 @@ part 'camera_interview_state.dart';
 
 class CameraInterviewBloc
     extends Bloc<CameraInterviewEvent, CameraInterviewState> {
-  final GeminiRepository _geminiRepository = GeminiRepository(
-    GeminiApiService(),
-  );
-  CameraInterviewBloc() : super(CameraInterviewInitial()) {
+  CameraInterviewBloc({
+    GeminiRepository? geminiRepository,
+    InterviewPersistenceRepository? interviewPersistenceRepository,
+  }) : _geminiRepository =
+           geminiRepository ?? GeminiRepository(GeminiApiService()),
+       _interviewPersistenceRepository =
+           interviewPersistenceRepository ?? InterviewPersistenceRepository(),
+       super(CameraInterviewInitial()) {
     //camera initaial->action state->launch inital mobile ui
     on<CameraInterviewInitialEvent>(cameraInterviewInitialEvent);
 
@@ -32,6 +39,10 @@ class CameraInterviewBloc
 
     on<SpeakTtsEvent>(speakTtsEvent);
   }
+
+  final GeminiRepository _geminiRepository;
+  final InterviewPersistenceRepository _interviewPersistenceRepository;
+  String? _activeInterviewId;
 
   // camera interview button tapped
   FutureOr<void> cameraInterviewInitialEvent(
@@ -55,6 +66,29 @@ class CameraInterviewBloc
     Emitter<CameraInterviewState> emit,
   ) async {
     emit(CameraInterviewLoadingState());
+    final interviewDetails = InterviewSessionDetails(
+      candidateName: event.candidateName,
+      interviewTopic: event.InterviewTopic,
+      difficultyLevel: event.difficultyLevel,
+      interviewType: event.interviewType,
+      yearsOfExperience: event.yearsOfExperience,
+    );
+
+    try {
+      _activeInterviewId = await _interviewPersistenceRepository
+          .createInterviewSession(interviewDetails);
+    } on InterviewPersistenceException catch (error) {
+      emit(CameraInterviewLoadingErrorState(errorMessage: error.message));
+      return;
+    } catch (_) {
+      emit(
+        CameraInterviewLoadingErrorState(
+          errorMessage: 'Could not save interview details. Please try again.',
+        ),
+      );
+      return;
+    }
+
     //make first json body which has instructions and candidate details
     _geminiRepository.startInterview(
       interviewTopic: event.InterviewTopic,
@@ -89,7 +123,10 @@ class CameraInterviewBloc
     emit(CameraInterviewLoadingState());
 
     if (event.isEndInterviewButtonTapped) {
-      final result = await _geminiRepository.sendCandidateAnswer(event.answer);
+      final result = await _geminiRepository.sendCandidateAnswer(
+        event.answer,
+        isResultRequest: true,
+      );
 
       if (!result.isSuccess) {
         emit(
@@ -99,6 +136,34 @@ class CameraInterviewBloc
         );
         return;
       }
+
+      final activeInterviewId = _activeInterviewId;
+      if (activeInterviewId == null) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: 'Interview session was not saved. Please try again.',
+          ),
+        );
+        return;
+      }
+
+      try {
+        await _interviewPersistenceRepository.saveResultMarkdown(
+          interviewId: activeInterviewId,
+          resultMarkdown: result.data!,
+        );
+      } on InterviewPersistenceException catch (error) {
+        emit(CameraInterviewLoadingErrorState(errorMessage: error.message));
+        return;
+      } catch (_) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: 'Could not save interview result. Please try again.',
+          ),
+        );
+        return;
+      }
+
       resultHistory.add(result.data!);
       emit(CameraInterviewResultState(result: result.data!));
     } else {

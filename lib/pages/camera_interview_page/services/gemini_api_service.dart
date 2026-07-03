@@ -7,12 +7,18 @@ import 'package:interview_app/core/constants/constants.dart';
 import 'package:interview_app/core/utils/errors_handler.dart';
 import 'package:interview_app/pages/camera_interview_page/models/gemini_response_model.dart';
 
-class GeminiApiService {
-  final Uri url = Uri.parse(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent',
-  );
+enum GeminiModelTier { primary, secondary }
 
-  Future<ApiResult<Post>> send(List<Map<String, dynamic>> contents) async {
+class GeminiApiService {
+  static const String _primaryModel = 'gemini-3.1-flash-lite';
+  static const String _secondaryModel = 'gemini-3.5-flash';
+  static const String _baseUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models';
+
+  Future<ApiResult<Post>> send(
+    List<Map<String, dynamic>> contents, {
+    GeminiModelTier modelTier = GeminiModelTier.primary,
+  }) async {
     try {
       if (geminiApiKey.trim().isEmpty) {
         return ApiResult.failure(ErrorsHandler.geminiApiKeyMessage());
@@ -20,7 +26,7 @@ class GeminiApiService {
 
       final response = await http
           .post(
-            url,
+            _urlFor(modelTier),
             headers: {
               'x-goog-api-key': geminiApiKey,
               'Content-Type': 'application/json',
@@ -82,6 +88,19 @@ class GeminiApiService {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  Uri _urlFor(GeminiModelTier modelTier) {
+    return Uri.parse('$_baseUrl/${_modelFor(modelTier)}:generateContent');
+  }
+
+  String _modelFor(GeminiModelTier modelTier) {
+    switch (modelTier) {
+      case GeminiModelTier.primary:
+        return _primaryModel;
+      case GeminiModelTier.secondary:
+        return _secondaryModel;
     }
   }
 }

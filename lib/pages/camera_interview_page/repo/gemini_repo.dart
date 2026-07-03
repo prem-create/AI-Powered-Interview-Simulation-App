@@ -110,9 +110,26 @@ Additional Instructions:
 
   // ================= SEND TO GEMINI =================
   Future<ApiResult<String>> sendToGemini() async {
+    return _sendToGemini(
+      modelTier: GeminiModelTier.primary,
+      fallbackToSecondary: true,
+    );
+  }
+
+  Future<ApiResult<String>> _sendToGemini({
+    required GeminiModelTier modelTier,
+    bool fallbackToSecondary = false,
+  }) async {
     final response = await _apiService.send(
       _messages.map((e) => e.toJson()).toList(),
+      modelTier: modelTier,
     );
+
+    if (!response.isSuccess &&
+        fallbackToSecondary &&
+        modelTier != GeminiModelTier.secondary) {
+      return _sendToGemini(modelTier: GeminiModelTier.secondary);
+    }
 
     if (!response.isSuccess) {
       return ApiResult.failure(
@@ -123,11 +140,19 @@ Additional Instructions:
 
     final post = response.data;
     if (post == null || post.candidates.isEmpty) {
+      if (fallbackToSecondary && modelTier != GeminiModelTier.secondary) {
+        return _sendToGemini(modelTier: GeminiModelTier.secondary);
+      }
+
       return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
     }
 
     final reply = _extractText(post);
     if (reply == null || reply.trim().isEmpty) {
+      if (fallbackToSecondary && modelTier != GeminiModelTier.secondary) {
+        return _sendToGemini(modelTier: GeminiModelTier.secondary);
+      }
+
       return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
     }
 
@@ -143,8 +168,15 @@ Additional Instructions:
   }
 
   // ================= MAIN METHOD =================
-  Future<ApiResult<String>> sendCandidateAnswer(String answer) async {
+  Future<ApiResult<String>> sendCandidateAnswer(
+    String answer, {
+    bool isResultRequest = false,
+  }) async {
     addCandidateAnswer(answer);
+    if (isResultRequest) {
+      return await _sendToGemini(modelTier: GeminiModelTier.secondary);
+    }
+
     return await sendToGemini();
   }
 
