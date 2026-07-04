@@ -123,51 +123,9 @@ class CameraInterviewBloc
     emit(CameraInterviewLoadingState());
 
     if (event.isEndInterviewButtonTapped) {
-      final result = await _geminiRepository.sendCandidateAnswer(
-        event.answer,
-        isResultRequest: true,
-      );
-
-      if (!result.isSuccess) {
-        emit(
-          CameraInterviewLoadingErrorState(
-            errorMessage: result.errorMessage ?? 'Unable to generate result.',
-          ),
-        );
-        return;
-      }
-
-      final activeInterviewId = _activeInterviewId;
-      if (activeInterviewId == null) {
-        emit(
-          CameraInterviewLoadingErrorState(
-            errorMessage: 'Interview session was not saved. Please try again.',
-          ),
-        );
-        return;
-      }
-
-      try {
-        await _interviewPersistenceRepository.saveResultMarkdown(
-          interviewId: activeInterviewId,
-          resultMarkdown: result.data!,
-        );
-      } on InterviewPersistenceException catch (error) {
-        emit(CameraInterviewLoadingErrorState(errorMessage: error.message));
-        return;
-      } catch (_) {
-        emit(
-          CameraInterviewLoadingErrorState(
-            errorMessage: 'Could not save interview result. Please try again.',
-          ),
-        );
-        return;
-      }
-
-      resultHistory.add(result.data!);
-      emit(CameraInterviewResultState(result: result.data!));
+      await _generateAndSaveResult(emit);
     } else {
-      final nextQuestion = await _geminiRepository.sendCandidateAnswer(
+      final nextQuestion = await _geminiRepository.submitCandidateAnswer(
         event.answer,
       );
 
@@ -181,8 +139,69 @@ class CameraInterviewBloc
         return;
       }
 
-      emit(CameraInterviewLoadingSuccessState(question: nextQuestion.data!));
+      final turnResponse = nextQuestion.data!;
+      if (turnResponse.shouldGenerateResult) {
+        await _generateAndSaveResult(emit);
+        return;
+      }
+
+      final question = turnResponse.question;
+      if (question == null || question.trim().isEmpty) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: 'Unable to load next question.',
+          ),
+        );
+        return;
+      }
+
+      emit(CameraInterviewLoadingSuccessState(question: question));
     }
+  }
+
+  Future<void> _generateAndSaveResult(
+    Emitter<CameraInterviewState> emit,
+  ) async {
+    final result = await _geminiRepository.generateFinalEvaluation();
+
+    if (!result.isSuccess) {
+      emit(
+        CameraInterviewLoadingErrorState(
+          errorMessage: result.errorMessage ?? 'Unable to generate result.',
+        ),
+      );
+      return;
+    }
+
+    final activeInterviewId = _activeInterviewId;
+    if (activeInterviewId == null) {
+      emit(
+        CameraInterviewLoadingErrorState(
+          errorMessage: 'Interview session was not saved. Please try again.',
+        ),
+      );
+      return;
+    }
+
+    try {
+      await _interviewPersistenceRepository.saveResultMarkdown(
+        interviewId: activeInterviewId,
+        resultMarkdown: result.data!,
+      );
+    } on InterviewPersistenceException catch (error) {
+      emit(CameraInterviewLoadingErrorState(errorMessage: error.message));
+      return;
+    } catch (_) {
+      emit(
+        CameraInterviewLoadingErrorState(
+          errorMessage: 'Could not save interview result. Please try again.',
+        ),
+      );
+      return;
+    }
+
+    resultHistory.add(result.data!);
+    emit(CameraInterviewResultState(result: result.data!));
   }
 
   FutureOr<void> speakTtsEvent(

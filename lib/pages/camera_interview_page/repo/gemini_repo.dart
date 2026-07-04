@@ -4,9 +4,11 @@ import 'package:interview_app/core/utils/errors_handler.dart';
 
 import '../models/gemini_response_model.dart';
 import '../models/interview_adaptive_decision.dart';
+import '../models/interview_question_budget.dart';
 import '../models/interview_question_pool.dart';
 import '../models/interview_scorecard_entry.dart';
 import '../models/interview_session_details.dart';
+import '../models/interview_turn_response.dart';
 import '../models/message_model.dart';
 import '../services/gemini_api_service.dart';
 
@@ -24,6 +26,10 @@ class GeminiRepository {
   _ActiveQuestion? _activeQuestion;
   String _currentDifficulty = 'easy';
   int _consecutiveFollowUps = 0;
+  InterviewQuestionBudget _questionBudget = const InterviewQuestionBudget(
+    minQuestions: 6,
+    maxQuestions: 8,
+  );
 
   List<InterviewScorecardEntry> get scorecard => List.unmodifiable(_scorecard);
 
@@ -43,13 +49,15 @@ class GeminiRepository {
     _activeQuestion = null;
     _currentDifficulty = _normalizeDifficulty(difficultyLevel);
     _consecutiveFollowUps = 0;
-    _interviewDetails = InterviewSessionDetails(
+    final interviewDetails = InterviewSessionDetails(
       candidateName: candidateName,
       interviewTopic: interviewTopic,
       difficultyLevel: difficultyLevel,
       interviewType: interviewType,
       yearsOfExperience: yearsOfExperience,
     );
+    _interviewDetails = interviewDetails;
+    _questionBudget = InterviewQuestionBudget.fromDetails(interviewDetails);
 
     _messages.add(
       Message(
@@ -405,19 +413,53 @@ JSON shape:
     String answer, {
     bool isResultRequest = false,
   }) async {
-    addCandidateAnswer(answer);
     if (isResultRequest) {
-      return await _sendToGemini(modelTier: GeminiModelTier.secondary);
+      return await generateFinalEvaluation();
     }
 
+    final turnResponse = await submitCandidateAnswer(answer);
+    if (!turnResponse.isSuccess) {
+      return ApiResult.failure(
+        turnResponse.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
+        statusCode: turnResponse.statusCode,
+      );
+    }
+
+    final response = turnResponse.data!;
+    if (response.shouldGenerateResult) {
+      return ApiResult.failure('Interview question limit reached.');
+    }
+
+    final question = response.question;
+    if (question == null || question.trim().isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    return ApiResult.success(question);
+  }
+
+  Future<ApiResult<InterviewTurnResponse>> submitCandidateAnswer(
+    String answer,
+  ) async {
+    addCandidateAnswer(answer);
     return await _selectNextQuestion(answer);
   }
 
-  Future<ApiResult<String>> _selectNextQuestion(String answer) async {
+  Future<ApiResult<InterviewTurnResponse>> _selectNextQuestion(
+    String answer,
+  ) async {
     final activeQuestion = _activeQuestion;
     final pool = _questionPool;
     if (activeQuestion == null || pool == null) {
-      return await sendToGemini();
+      final question = await sendToGemini();
+      if (!question.isSuccess) {
+        return ApiResult.failure(
+          question.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
+          statusCode: question.statusCode,
+        );
+      }
+
+      return ApiResult.success(InterviewTurnResponse.question(question.data!));
     }
 
     final decisionResult = await _requestAdaptiveDecision(answer);
@@ -441,6 +483,14 @@ JSON shape:
       ),
     );
 
+    if (_scorecard.length >= _questionBudget.maxQuestions) {
+      return const ApiResult.success(InterviewTurnResponse.generateResult());
+    }
+
+    final canSuggestWrapUp =
+        _scorecard.length >= _questionBudget.minQuestions &&
+        decision.suggestWrapUp;
+
     final shouldAskFollowUp =
         decision.action == AdaptiveAction.followUp &&
         decision.followUpQuestion != null &&
@@ -452,7 +502,12 @@ JSON shape:
       _activeQuestion = activeQuestion.toFollowUp(followUpQuestion);
       _currentDifficulty = _difficultyFromSignal(decision.difficultySignal);
       _messages.add(Message(role: 'model', text: followUpQuestion));
-      return ApiResult.success(followUpQuestion);
+      return ApiResult.success(
+        InterviewTurnResponse.question(
+          followUpQuestion,
+          canSuggestWrapUp: canSuggestWrapUp,
+        ),
+      );
     }
 
     final nextQuestion = _selectPoolQuestion(
@@ -460,7 +515,12 @@ JSON shape:
       preferredDifficulty: _difficultyFromSignal(decision.difficultySignal),
     );
     _markPoolQuestionAsked(nextQuestion, resetFollowUps: true);
-    return ApiResult.success(nextQuestion.question);
+    return ApiResult.success(
+      InterviewTurnResponse.question(
+        nextQuestion.question,
+        canSuggestWrapUp: canSuggestWrapUp,
+      ),
+    );
   }
 
   Future<ApiResult<InterviewAdaptiveDecision>> _requestAdaptiveDecision(
@@ -618,6 +678,112 @@ JSON shape:
           },
         )
         .toList(growable: false);
+  }
+
+  Future<ApiResult<String>> generateFinalEvaluation() async {
+    if (_scorecard.isEmpty) {
+      return ApiResult.failure('No interview answers were captured.');
+    }
+
+    final primaryResult = await _requestFinalEvaluation(
+      GeminiModelTier.secondary,
+    );
+    if (primaryResult.isSuccess) return primaryResult;
+
+    final fallbackResult = await _requestFinalEvaluation(
+      GeminiModelTier.primary,
+    );
+    if (fallbackResult.isSuccess) return fallbackResult;
+
+    return fallbackResult.errorMessage == null ? primaryResult : fallbackResult;
+  }
+
+  Future<ApiResult<String>> _requestFinalEvaluation(
+    GeminiModelTier modelTier,
+  ) async {
+    final interviewDetails = _interviewDetails;
+    if (interviewDetails == null) {
+      return ApiResult.failure('Interview details are missing.');
+    }
+
+    final response = await _apiService.send([
+      Message(
+        role: 'user',
+        text: _buildFinalEvaluationPrompt(interviewDetails),
+      ).toJson(),
+    ], modelTier: modelTier);
+
+    if (!response.isSuccess) {
+      return ApiResult.failure(
+        response.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final post = response.data;
+    if (post == null || post.candidates.isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    final reply = _extractText(post);
+    if (reply == null || reply.trim().isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    return ApiResult.success(reply);
+  }
+
+  String _buildFinalEvaluationPrompt(InterviewSessionDetails details) {
+    return """
+You are a professional technical interviewer.
+
+Generate a complete evaluation report from this compact interview scorecard.
+Do not assume any extra answers beyond the scorecard.
+
+Interview details:
+Candidate Name: ${details.candidateName}
+Interview Topic: ${details.interviewTopic}
+Difficulty Level: ${details.difficultyLevel}
+Interview Type: ${details.interviewType}
+Years of Experience: ${details.yearsOfExperience}
+Questions Answered: ${_scorecard.length}
+Question Budget: ${_questionBudget.minQuestions}-${_questionBudget.maxQuestions}
+
+Scorecard JSON:
+${jsonEncode(_scorecard.map((entry) => entry.toJson()).toList(growable: false))}
+
+Report Requirements:
+1. Use proper Markdown formatting.
+2. Use clear section headings with ## and ###.
+3. Use bullet points and numbered lists wherever appropriate.
+4. Highlight important terms using bold text.
+5. Keep spacing clean and readable.
+6. Be lenient with minor speech-to-text transcription errors.
+7. Focus more on intent and conceptual correctness than exact wording.
+8. Keep feedback constructive and actionable.
+
+Evaluation Sections:
+
+## Candidate Summary
+
+## Strengths
+
+## Weaknesses
+
+## Question-wise Feedback
+
+For each question include:
+- Expected concept
+- Candidate response summary
+- Evaluation as Correct, Partial, or Incorrect
+- Improvement tip
+
+## Suggestions for Improvement
+
+## Final Evaluation
+
+Include overall rating as Beginner, Intermediate, or Strong with a short justification and interview readiness status.
+""";
   }
 
   // ================= HELPER =================
