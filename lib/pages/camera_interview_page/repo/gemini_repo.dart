@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:interview_app/core/utils/errors_handler.dart';
 
 import '../models/gemini_response_model.dart';
+import '../models/interview_adaptive_decision.dart';
 import '../models/interview_question_pool.dart';
+import '../models/interview_scorecard_entry.dart';
 import '../models/interview_session_details.dart';
 import '../models/message_model.dart';
 import '../services/gemini_api_service.dart';
@@ -17,7 +19,13 @@ class GeminiRepository {
   InterviewSessionDetails? _interviewDetails;
   InterviewQuestionPool? _questionPool;
   final Set<String> _askedPoolQuestionIds = {};
+  final List<InterviewScorecardEntry> _scorecard = [];
   bool _hasAskedInitialPoolQuestion = false;
+  _ActiveQuestion? _activeQuestion;
+  String _currentDifficulty = 'easy';
+  int _consecutiveFollowUps = 0;
+
+  List<InterviewScorecardEntry> get scorecard => List.unmodifiable(_scorecard);
 
   // ================= START INTERVIEW =================
   void startInterview({
@@ -30,7 +38,11 @@ class GeminiRepository {
     _messages.clear();
     _questionPool = null;
     _askedPoolQuestionIds.clear();
+    _scorecard.clear();
     _hasAskedInitialPoolQuestion = false;
+    _activeQuestion = null;
+    _currentDifficulty = _normalizeDifficulty(difficultyLevel);
+    _consecutiveFollowUps = 0;
     _interviewDetails = InterviewSessionDetails(
       candidateName: candidateName,
       interviewTopic: interviewTopic,
@@ -163,7 +175,7 @@ Additional Instructions:
     }
 
     final selectedQuestion = _selectInitialQuestion(poolResult.data!);
-    _markPoolQuestionAsked(selectedQuestion);
+    _markPoolQuestionAsked(selectedQuestion, resetFollowUps: true);
     _hasAskedInitialPoolQuestion = true;
 
     return ApiResult.success(selectedQuestion.question);
@@ -260,10 +272,13 @@ Additional Instructions:
   }
 
   InterviewPoolQuestion _selectInitialQuestion(InterviewQuestionPool pool) {
-    final preferredDifficulty = _normalizeDifficulty(
-      _interviewDetails?.difficultyLevel,
-    );
+    return _selectPoolQuestion(pool, preferredDifficulty: _currentDifficulty);
+  }
 
+  InterviewPoolQuestion _selectPoolQuestion(
+    InterviewQuestionPool pool, {
+    required String preferredDifficulty,
+  }) {
     final matchingQuestions = pool.questions.where((question) {
       return question.difficulty == preferredDifficulty &&
           !_askedPoolQuestionIds.contains(question.id);
@@ -279,8 +294,16 @@ Additional Instructions:
     );
   }
 
-  void _markPoolQuestionAsked(InterviewPoolQuestion question) {
+  void _markPoolQuestionAsked(
+    InterviewPoolQuestion question, {
+    required bool resetFollowUps,
+  }) {
     _askedPoolQuestionIds.add(question.id);
+    _activeQuestion = _ActiveQuestion.fromPoolQuestion(question);
+    _currentDifficulty = question.difficulty;
+    if (resetFollowUps) {
+      _consecutiveFollowUps = 0;
+    }
     _messages.add(Message(role: 'model', text: question.question));
   }
 
@@ -387,7 +410,214 @@ JSON shape:
       return await _sendToGemini(modelTier: GeminiModelTier.secondary);
     }
 
-    return await sendToGemini();
+    return await _selectNextQuestion(answer);
+  }
+
+  Future<ApiResult<String>> _selectNextQuestion(String answer) async {
+    final activeQuestion = _activeQuestion;
+    final pool = _questionPool;
+    if (activeQuestion == null || pool == null) {
+      return await sendToGemini();
+    }
+
+    final decisionResult = await _requestAdaptiveDecision(answer);
+    final decision =
+        decisionResult.data ??
+        const InterviewAdaptiveDecision(
+          action: AdaptiveAction.usePool,
+          answerQuality: AnswerQuality.partial,
+          difficultySignal: DifficultySignal.same,
+          suggestWrapUp: false,
+        );
+
+    _scorecard.add(
+      InterviewScorecardEntry(
+        question: activeQuestion.question,
+        answer: answer,
+        answerQuality: decision.answerQuality.value,
+        difficulty: activeQuestion.difficulty,
+        tags: activeQuestion.tags,
+        source: activeQuestion.source,
+      ),
+    );
+
+    final shouldAskFollowUp =
+        decision.action == AdaptiveAction.followUp &&
+        decision.followUpQuestion != null &&
+        _consecutiveFollowUps < 2;
+
+    if (shouldAskFollowUp) {
+      final followUpQuestion = decision.followUpQuestion!;
+      _consecutiveFollowUps++;
+      _activeQuestion = activeQuestion.toFollowUp(followUpQuestion);
+      _currentDifficulty = _difficultyFromSignal(decision.difficultySignal);
+      _messages.add(Message(role: 'model', text: followUpQuestion));
+      return ApiResult.success(followUpQuestion);
+    }
+
+    final nextQuestion = _selectPoolQuestion(
+      pool,
+      preferredDifficulty: _difficultyFromSignal(decision.difficultySignal),
+    );
+    _markPoolQuestionAsked(nextQuestion, resetFollowUps: true);
+    return ApiResult.success(nextQuestion.question);
+  }
+
+  Future<ApiResult<InterviewAdaptiveDecision>> _requestAdaptiveDecision(
+    String answer,
+  ) async {
+    final activeQuestion = _activeQuestion;
+    final interviewDetails = _interviewDetails;
+    final pool = _questionPool;
+    if (activeQuestion == null || interviewDetails == null || pool == null) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    final primaryResult = await _sendAdaptiveDecisionRequest(
+      answer: answer,
+      modelTier: GeminiModelTier.primary,
+    );
+    if (primaryResult.isSuccess) return primaryResult;
+
+    final secondaryResult = await _sendAdaptiveDecisionRequest(
+      answer: answer,
+      modelTier: GeminiModelTier.secondary,
+    );
+    if (secondaryResult.isSuccess) return secondaryResult;
+
+    return secondaryResult.errorMessage == null
+        ? primaryResult
+        : secondaryResult;
+  }
+
+  Future<ApiResult<InterviewAdaptiveDecision>> _sendAdaptiveDecisionRequest({
+    required String answer,
+    required GeminiModelTier modelTier,
+  }) async {
+    final response = await _apiService.send(
+      [
+        Message(
+          role: 'user',
+          text: _buildAdaptiveDecisionPrompt(answer),
+        ).toJson(),
+      ],
+      modelTier: modelTier,
+      generationConfig: const {'responseMimeType': 'application/json'},
+    );
+
+    if (!response.isSuccess) {
+      return ApiResult.failure(
+        response.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
+        statusCode: response.statusCode,
+      );
+    }
+
+    final post = response.data;
+    if (post == null || post.candidates.isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    final reply = _extractText(post);
+    if (reply == null || reply.trim().isEmpty) {
+      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
+    }
+
+    try {
+      return ApiResult.success(_parseAdaptiveDecision(reply));
+    } on FormatException {
+      return ApiResult.failure(ErrorsHandler.geminiParsingMessage());
+    }
+  }
+
+  InterviewAdaptiveDecision _parseAdaptiveDecision(String responseText) {
+    final decoded = jsonDecode(_stripJsonCodeFence(responseText));
+    if (decoded is! Map<String, dynamic>) {
+      throw const FormatException('Adaptive decision response must be JSON.');
+    }
+
+    return InterviewAdaptiveDecision.fromJson(decoded);
+  }
+
+  String _difficultyFromSignal(DifficultySignal signal) {
+    const difficultyOrder = ['easy', 'medium', 'hard'];
+    final currentIndex = difficultyOrder.indexOf(_currentDifficulty);
+    final safeCurrentIndex = currentIndex == -1 ? 0 : currentIndex;
+
+    switch (signal) {
+      case DifficultySignal.up:
+        final nextIndex = safeCurrentIndex + 1;
+        return difficultyOrder[nextIndex.clamp(0, difficultyOrder.length - 1)];
+      case DifficultySignal.down:
+        final nextIndex = safeCurrentIndex - 1;
+        return difficultyOrder[nextIndex.clamp(0, difficultyOrder.length - 1)];
+      case DifficultySignal.same:
+        return difficultyOrder[safeCurrentIndex];
+    }
+  }
+
+  String _buildAdaptiveDecisionPrompt(String answer) {
+    final activeQuestion = _activeQuestion!;
+    final interviewDetails = _interviewDetails!;
+
+    return """
+You are an adaptive interview decision engine.
+
+Return only valid JSON. Do not return markdown or prose.
+
+Interview context:
+Topic: ${interviewDetails.interviewTopic}
+Interview Type: ${interviewDetails.interviewType}
+Years of Experience: ${interviewDetails.yearsOfExperience}
+Current Difficulty: ${activeQuestion.difficulty}
+Current Question Tags: ${jsonEncode(activeQuestion.tags)}
+Covered Tags: ${jsonEncode(_coveredTags())}
+Unused Pool Preview: ${jsonEncode(_unusedPoolPreview())}
+Consecutive Follow Ups For Current Question: $_consecutiveFollowUps
+
+Current Question:
+${activeQuestion.question}
+
+Candidate Answer:
+$answer
+
+Decision rules:
+1. Use follow_up only when the answer is unclear, incomplete, or worth probing deeper.
+2. Use use_pool when the answer is good enough to move forward or the topic is already covered.
+3. Never suggest follow_up when consecutive follow ups is 2 or more.
+4. The follow_up_question must be short, clear, TTS-friendly, and one sentence.
+5. Set difficulty_signal to up for strong answers, down for weak answers, same otherwise.
+
+JSON shape:
+{
+  "action": "follow_up",
+  "answer_quality": "partial",
+  "difficulty_signal": "same",
+  "follow_up_question": "Can you clarify ...",
+  "suggest_wrap_up": false
+}
+""";
+  }
+
+  List<String> _coveredTags() {
+    return _scorecard
+        .expand((entry) => entry.tags)
+        .toSet()
+        .toList(growable: false);
+  }
+
+  List<Map<String, dynamic>> _unusedPoolPreview() {
+    final pool = _questionPool;
+    if (pool == null) return const [];
+
+    return pool.questions
+        .where((question) => !_askedPoolQuestionIds.contains(question.id))
+        .map(
+          (question) => {
+            'difficulty': question.difficulty,
+            'tags': question.tags,
+          },
+        )
+        .toList(growable: false);
   }
 
   // ================= HELPER =================
@@ -395,5 +625,37 @@ JSON shape:
     final parts = response.candidates.first.content.parts;
     if (parts.isEmpty) return null;
     return parts.first.text;
+  }
+}
+
+class _ActiveQuestion {
+  const _ActiveQuestion({
+    required this.question,
+    required this.difficulty,
+    required this.tags,
+    required this.source,
+  });
+
+  final String question;
+  final String difficulty;
+  final List<String> tags;
+  final String source;
+
+  factory _ActiveQuestion.fromPoolQuestion(InterviewPoolQuestion question) {
+    return _ActiveQuestion(
+      question: question.question,
+      difficulty: question.difficulty,
+      tags: question.tags,
+      source: 'pool',
+    );
+  }
+
+  _ActiveQuestion toFollowUp(String followUpQuestion) {
+    return _ActiveQuestion(
+      question: followUpQuestion,
+      difficulty: difficulty,
+      tags: tags,
+      source: 'follow_up',
+    );
   }
 }
