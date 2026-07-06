@@ -20,75 +20,95 @@ class InitialMobileUi extends StatelessWidget {
       ),
       backgroundColor: const Color.fromARGB(255, 234, 240, 249),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.4,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final heroSize = _heroSizeForWidth(constraints.maxWidth);
 
-                child: Stack(
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 16.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Padding(
-                      padding: EdgeInsets.all(20.w),
-                      child: Container(
-                        width: double.infinity,
-                        // height: 40.h,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          image: DecorationImage(
-                            image: AssetImage('assets/interview.webp'),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        child: Center(
-                          child: MyIconElevatedButton(
-                            onPressed: () {
-                              context.read<CameraInterviewBloc>().add(
-                                AskInterviewDetailsEvent(),
-                              );
-                            },
-                            iconData: Icons.play_arrow_outlined,
-                            IconSize: 30,
-                            text: 'Start Interveiw',
-                            buttoncolor: const Color.fromARGB(255, 60, 92, 221),
-                            textcolor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Padding(
-                padding: EdgeInsets.only(left: 20.w, right: 20.w),
-                child: Column(
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      width: double.infinity,
-                      child: Padding(
-                        padding: EdgeInsets.all(15.w),
-                        child: Text(
-                          "Welcome to your mock interview! 🎯\n\nEnter your details to begin and give it your best shot! 🚀",
-                          style: TextStyle(
-                            color: const Color.fromARGB(255, 50, 48, 48),
-                            fontSize: 20,
+                      padding: EdgeInsets.fromLTRB(20.w, 20.w, 20.w, 16.w),
+                      child: Center(
+                        child: SizedBox(
+                          width: heroSize,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(20),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.asset(
+                                    'assets/interview.webp',
+                                    fit: BoxFit.cover,
+                                  ),
+                                  Center(
+                                    child: MyIconElevatedButton(
+                                      onPressed: () {
+                                        context.read<CameraInterviewBloc>().add(
+                                          AskInterviewDetailsEvent(),
+                                        );
+                                      },
+                                      iconData: Icons.play_arrow_outlined,
+                                      IconSize: 30,
+                                      text: 'Start Interveiw',
+                                      buttoncolor: const Color.fromARGB(
+                                        255,
+                                        60,
+                                        92,
+                                        221,
+                                      ),
+                                      textcolor: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Center(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          child: Padding(
+                            padding: EdgeInsets.all(15.w),
+                            child: SizedBox(
+                              width: heroSize,
+                              child: Text(
+                                "Welcome to your mock interview! 🎯\n\nEnter your details to begin and give it your best shot! 🚀",
+                                style: TextStyle(
+                                  color: const Color.fromARGB(255, 50, 48, 48),
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    10.ht,
                   ],
                 ),
               ),
-              10.ht,
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
+  }
+
+  double _heroSizeForWidth(double width) {
+    if (width >= 700) return 420;
+    return width - 40.w;
   }
 }

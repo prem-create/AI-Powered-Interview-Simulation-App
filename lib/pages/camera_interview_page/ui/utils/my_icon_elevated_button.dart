@@ -28,12 +28,12 @@ class MyIconElevatedButton extends StatelessWidget {
       height: height.h,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: Icon(iconData, size: IconSize),
+        icon: Icon(iconData, size: IconSize.clamp(20, 25)),
         label: Text(
           text,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            fontSize: 16.sp.clamp(14, 24),
+            fontSize: 16.sp.clamp(14, 16),
           ),
         ),
         style: ElevatedButton.styleFrom(
@@ -43,7 +43,7 @@ class MyIconElevatedButton extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
           ),
-          padding:  EdgeInsets.symmetric(horizontal: 24.h, vertical: 14.w),
+          padding:  EdgeInsets.symmetric(horizontal: 5.w, vertical: 5.w),
         ),
       ),
     );
