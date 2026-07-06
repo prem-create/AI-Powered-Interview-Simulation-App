@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:interview_app/pages/camera_interview_page/models/interview_history_item.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_persistence_exception.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_scorecard_entry.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
@@ -94,6 +95,31 @@ class FirestoreInterviewService {
     }
   }
 
+  Stream<List<InterviewHistoryItem>> watchInterviewHistory() {
+    try {
+      return _currentUserInterviews
+          .orderBy('updatedAt', descending: true)
+          .snapshots()
+          .map(
+            (snapshot) => snapshot.docs
+                .map(_historyItemFromDocument)
+                .toList(growable: false),
+          );
+    } on InterviewPersistenceException catch (error) {
+      return Stream.error(error);
+    } on FirebaseException catch (error) {
+      return Stream.error(
+        InterviewPersistenceException(_messageForFirebaseCode(error.code)),
+      );
+    } catch (_) {
+      return Stream.error(
+        const InterviewPersistenceException(
+          'Could not load interview history. Please try again.',
+        ),
+      );
+    }
+  }
+
   CollectionReference<Map<String, dynamic>> get _currentUserInterviews {
     final userId = _firebaseAuth.currentUser?.uid;
 
@@ -104,6 +130,36 @@ class FirestoreInterviewService {
     }
 
     return _firestore.collection('users').doc(userId).collection('interviews');
+  }
+
+  InterviewHistoryItem _historyItemFromDocument(
+    QueryDocumentSnapshot<Map<String, dynamic>> document,
+  ) {
+    final data = document.data();
+
+    return InterviewHistoryItem(
+      id: document.id,
+      candidateName: (data['candidateName'] as String?) ?? '',
+      interviewTopic: (data['interviewTopic'] as String?) ?? '',
+      difficultyLevel: (data['difficultyLevel'] as String?) ?? '',
+      interviewType: (data['interviewType'] as String?) ?? '',
+      yearsOfExperience: (data['yearsOfExperience'] as String?) ?? '',
+      status: (data['status'] as String?) ?? 'in_progress',
+      answeredQuestionsCount:
+          (data['answeredQuestionsCount'] as num?)?.toInt() ?? 0,
+      createdAt: _dateTimeFromTimestamp(data['createdAt']),
+      updatedAt: _dateTimeFromTimestamp(data['updatedAt']),
+      completedAt: _dateTimeFromTimestamp(data['completedAt']),
+      resultMarkdown: data['resultMarkdown'] as String?,
+    );
+  }
+
+  DateTime? _dateTimeFromTimestamp(Object? value) {
+    if (value is Timestamp) {
+      return value.toDate();
+    }
+
+    return null;
   }
 
   String _messageForFirebaseCode(String code) {

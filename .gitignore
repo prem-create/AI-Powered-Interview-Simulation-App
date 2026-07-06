@@ -39,6 +39,8 @@ lib.zip
 lib/firebase_options.dart
 firebase.json
 .firebaserc
+firebase-migration/node_modules/
+firebase-migration/serviceAccountKey.json
 
 # Symbolication related
 app.*.symbols

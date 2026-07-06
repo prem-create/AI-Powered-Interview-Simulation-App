@@ -1,4 +1,5 @@
 import 'package:interview_app/pages/camera_interview_page/models/interview_scorecard_entry.dart';
+import 'package:interview_app/pages/camera_interview_page/models/interview_history_item.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
 import 'package:interview_app/pages/camera_interview_page/services/firestore_interview_service.dart';
 
@@ -32,5 +33,9 @@ class InterviewPersistenceRepository {
       interviewId: interviewId,
       resultMarkdown: resultMarkdown,
     );
+  }
+
+  Stream<List<InterviewHistoryItem>> watchInterviewHistory() {
+    return _firestoreService.watchInterviewHistory();
   }
 }
