@@ -15,7 +15,6 @@ dependencies:
   responsive_builder: ^0.7.1
   flutter_screenutil: ^5.9.3
   http: ^1.6.0
-  # text_to_speech: ^0.2.3
   flutter_tts: ^3.8.5
   flutter_markdown_plus: ^1.0.7
   record: ^6.2.0

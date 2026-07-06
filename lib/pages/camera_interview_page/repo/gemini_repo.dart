@@ -11,13 +11,13 @@ import '../models/interview_session_details.dart';
 import '../models/interview_turn_response.dart';
 import '../models/message_model.dart';
 import '../services/gemini_api_service.dart';
+import 'interview_prompts.dart';
 
 class GeminiRepository {
   final GeminiApiService _apiService;
 
   GeminiRepository(this._apiService);
 
-  final List<Message> _messages = [];
   InterviewSessionDetails? _interviewDetails;
   InterviewQuestionPool? _questionPool;
   final Set<String> _askedPoolQuestionIds = {};
@@ -41,7 +41,6 @@ class GeminiRepository {
     required String interviewType,
     required String yearsOfExperience,
   }) {
-    _messages.clear();
     _questionPool = null;
     _askedPoolQuestionIds.clear();
     _scorecard.clear();
@@ -58,107 +57,6 @@ class GeminiRepository {
     );
     _interviewDetails = interviewDetails;
     _questionBudget = InterviewQuestionBudget.fromDetails(interviewDetails);
-
-    _messages.add(
-      Message(
-        role: "user",
-        text: _buildLegacyInterviewPrompt(
-          candidateName: candidateName,
-          interviewTopic: interviewTopic,
-          difficultyLevel: difficultyLevel,
-          interviewType: interviewType,
-          yearsOfExperience: yearsOfExperience,
-        ),
-      ),
-    );
-  }
-
-  String _buildLegacyInterviewPrompt({
-    required String candidateName,
-    required String interviewTopic,
-    required String difficultyLevel,
-    required String interviewType,
-    required String yearsOfExperience,
-  }) {
-    return """
-You are a professional technical interviewer.
-
-Interview details:
-
-* Candidate Name: $candidateName
-* Interview Topic: $interviewTopic
-* Difficulty Level: $difficultyLevel
-* Interview Type: $interviewType
-* Years of Experience: $yearsOfExperience
-
-Instructions:
-
-1. Ask one question at a time.
-2. Keep questions short, clear, and highly TTS-friendly (avoid complex or long sentences).
-3. Stay strictly within the given topic, difficulty level, interview type, and years of experience.
-4. Use simple wording so speech-to-text systems can accurately capture responses.
-5. Avoid special characters such as quotation marks, asterisks, or symbols that may interfere with TTS or STT.
-6. Prefer commonly spoken forms of technical terms where possible.
-7. Be adaptive and understanding that responses may come from speech-to-text and may contain minor errors.
-8. If a response seems unclear, ask a short follow-up instead of assuming it is wrong.
-9. Continue asking questions until the user says "End Interview".
-
-When "End Interview" is received:
-Generate a complete evaluation report.
-
-Report Requirements (use proper Markdown formatting):
-
-1. Use clear section headings with ## and ###.
-2. Use bullet points and numbered lists wherever appropriate.
-3. Highlight important terms using bold text.
-4. Keep spacing clean and readable.
-5. Use short paragraphs instead of long blocks of text.
-
-Evaluation Sections:
-
-## Candidate Summary
-
-* Brief overview of performance
-* Communication clarity (considering STT limitations)
-
-## Strengths
-
-* Technical understanding
-* Clarity of explanation
-* Problem-solving approach
-
-## Weaknesses
-
-* Conceptual gaps
-* Incorrect or incomplete answers
-* Communication issues (if any)
-
-## Question-wise Feedback
-
-* Each question with:
-
-  * Expected concept
-  * Candidate response summary
-  * Evaluation (Correct / Partial / Incorrect)
-  * Improvement tip
-
-## Suggestions for Improvement
-
-* Specific topics to revise
-* Practical actions (projects, practice, etc.)
-
-## Final Evaluation
-
-* Overall rating (Beginner / Intermediate / Strong)
-* Short justification
-
-Additional Instructions:
-
-* Be lenient with minor transcription errors due to speech-to-text.
-* Focus more on intent and conceptual correctness than exact wording.
-* Do not penalize small grammar or pronunciation-related mistakes.
-* Keep feedback constructive and actionable.
-  """;
   }
 
   // ================= SEND TO GEMINI =================
@@ -167,10 +65,7 @@ Additional Instructions:
       return await _loadPoolAndSelectInitialQuestion();
     }
 
-    return _sendToGemini(
-      modelTier: GeminiModelTier.primary,
-      fallbackToSecondary: true,
-    );
+    return ApiResult.failure('Interview already has an active question.');
   }
 
   Future<ApiResult<String>> _loadPoolAndSelectInitialQuestion() async {
@@ -225,7 +120,7 @@ Additional Instructions:
       [
         Message(
           role: 'user',
-          text: _buildQuestionPoolPrompt(interviewDetails),
+          text: buildQuestionPoolPrompt(interviewDetails),
         ).toJson(),
       ],
       modelTier: modelTier,
@@ -312,7 +207,6 @@ Additional Instructions:
     if (resetFollowUps) {
       _consecutiveFollowUps = 0;
     }
-    _messages.add(Message(role: 'model', text: question.question));
   }
 
   String _normalizeDifficulty(String? difficulty) {
@@ -320,92 +214,6 @@ Additional Instructions:
     if (value.contains('hard')) return 'hard';
     if (value.contains('medium')) return 'medium';
     return 'easy';
-  }
-
-  String _buildQuestionPoolPrompt(InterviewSessionDetails details) {
-    return """
-You are a professional technical interviewer.
-
-Generate a reusable interview question pool for this session.
-
-Candidate Name: ${details.candidateName}
-Interview Topic: ${details.interviewTopic}
-Difficulty Level: ${details.difficultyLevel}
-Interview Type: ${details.interviewType}
-Years of Experience: ${details.yearsOfExperience}
-
-Requirements:
-1. Generate exactly 15 questions.
-2. Include 5 easy, 5 medium, and 5 hard questions.
-3. Questions must be short, clear, TTS-friendly, and suitable for speech answers.
-4. Stay strictly within the interview topic, type, difficulty, and experience level.
-5. Avoid quotation marks, markdown, bullets, symbols, and multi-part questions inside question text.
-6. Each question must include 2 to 4 lowercase topic tags.
-7. Return only valid JSON.
-
-JSON shape:
-{
-  "questions": [
-    {
-      "id": "q1",
-      "question": "Explain ...",
-      "difficulty": "easy",
-      "tags": ["tag_one", "tag_two"]
-    }
-  ]
-}
-""";
-  }
-
-  Future<ApiResult<String>> _sendToGemini({
-    required GeminiModelTier modelTier,
-    bool fallbackToSecondary = false,
-  }) async {
-    final response = await _apiService.send(
-      _messages.map((e) => e.toJson()).toList(),
-      modelTier: modelTier,
-    );
-
-    if (!response.isSuccess &&
-        fallbackToSecondary &&
-        modelTier != GeminiModelTier.secondary) {
-      return _sendToGemini(modelTier: GeminiModelTier.secondary);
-    }
-
-    if (!response.isSuccess) {
-      return ApiResult.failure(
-        response.errorMessage ?? ErrorsHandler.geminiEmptyResponseMessage(),
-        statusCode: response.statusCode,
-      );
-    }
-
-    final post = response.data;
-    if (post == null || post.candidates.isEmpty) {
-      if (fallbackToSecondary && modelTier != GeminiModelTier.secondary) {
-        return _sendToGemini(modelTier: GeminiModelTier.secondary);
-      }
-
-      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
-    }
-
-    final reply = _extractText(post);
-    if (reply == null || reply.trim().isEmpty) {
-      if (fallbackToSecondary && modelTier != GeminiModelTier.secondary) {
-        return _sendToGemini(modelTier: GeminiModelTier.secondary);
-      }
-
-      return ApiResult.failure(ErrorsHandler.geminiEmptyResponseMessage());
-    }
-
-    // store AI reply
-    _messages.add(Message(role: "model", text: reply));
-
-    return ApiResult.success(reply);
-  }
-
-  // ================= ADD USER ANSWER =================
-  void addCandidateAnswer(String answer) {
-    _messages.add(Message(role: "user", text: answer));
   }
 
   // ================= MAIN METHOD =================
@@ -441,7 +249,6 @@ JSON shape:
   Future<ApiResult<InterviewTurnResponse>> submitCandidateAnswer(
     String answer,
   ) async {
-    addCandidateAnswer(answer);
     return await _selectNextQuestion(answer);
   }
 
@@ -501,7 +308,6 @@ JSON shape:
       _consecutiveFollowUps++;
       _activeQuestion = activeQuestion.toFollowUp(followUpQuestion);
       _currentDifficulty = _difficultyFromSignal(decision.difficultySignal);
-      _messages.add(Message(role: 'model', text: followUpQuestion));
       return ApiResult.success(
         InterviewTurnResponse.question(
           followUpQuestion,
@@ -554,11 +360,25 @@ JSON shape:
     required String answer,
     required GeminiModelTier modelTier,
   }) async {
+    final activeQuestion = _activeQuestion!;
+    final interviewDetails = _interviewDetails!;
+
     final response = await _apiService.send(
       [
         Message(
           role: 'user',
-          text: _buildAdaptiveDecisionPrompt(answer),
+          text: buildAdaptiveDecisionPrompt(
+            answer: answer,
+            interviewTopic: interviewDetails.interviewTopic,
+            interviewType: interviewDetails.interviewType,
+            yearsOfExperience: interviewDetails.yearsOfExperience,
+            currentDifficulty: activeQuestion.difficulty,
+            currentQuestionTags: activeQuestion.tags,
+            coveredTags: _coveredTags(),
+            unusedPoolPreview: _unusedPoolPreview(),
+            consecutiveFollowUps: _consecutiveFollowUps,
+            currentQuestion: activeQuestion.question,
+          ),
         ).toJson(),
       ],
       modelTier: modelTier,
@@ -615,49 +435,6 @@ JSON shape:
     }
   }
 
-  String _buildAdaptiveDecisionPrompt(String answer) {
-    final activeQuestion = _activeQuestion!;
-    final interviewDetails = _interviewDetails!;
-
-    return """
-You are an adaptive interview decision engine.
-
-Return only valid JSON. Do not return markdown or prose.
-
-Interview context:
-Topic: ${interviewDetails.interviewTopic}
-Interview Type: ${interviewDetails.interviewType}
-Years of Experience: ${interviewDetails.yearsOfExperience}
-Current Difficulty: ${activeQuestion.difficulty}
-Current Question Tags: ${jsonEncode(activeQuestion.tags)}
-Covered Tags: ${jsonEncode(_coveredTags())}
-Unused Pool Preview: ${jsonEncode(_unusedPoolPreview())}
-Consecutive Follow Ups For Current Question: $_consecutiveFollowUps
-
-Current Question:
-${activeQuestion.question}
-
-Candidate Answer:
-$answer
-
-Decision rules:
-1. Use follow_up only when the answer is unclear, incomplete, or worth probing deeper.
-2. Use use_pool when the answer is good enough to move forward or the topic is already covered.
-3. Never suggest follow_up when consecutive follow ups is 2 or more.
-4. The follow_up_question must be short, clear, TTS-friendly, and one sentence.
-5. Set difficulty_signal to up for strong answers, down for weak answers, same otherwise.
-
-JSON shape:
-{
-  "action": "follow_up",
-  "answer_quality": "partial",
-  "difficulty_signal": "same",
-  "follow_up_question": "Can you clarify ...",
-  "suggest_wrap_up": false
-}
-""";
-  }
-
   List<String> _coveredTags() {
     return _scorecard
         .expand((entry) => entry.tags)
@@ -709,7 +486,11 @@ JSON shape:
     final response = await _apiService.send([
       Message(
         role: 'user',
-        text: _buildFinalEvaluationPrompt(interviewDetails),
+        text: buildFinalEvaluationPrompt(
+          details: interviewDetails,
+          scorecard: _scorecard,
+          questionBudget: _questionBudget,
+        ),
       ).toJson(),
     ], modelTier: modelTier);
 
@@ -731,59 +512,6 @@ JSON shape:
     }
 
     return ApiResult.success(reply);
-  }
-
-  String _buildFinalEvaluationPrompt(InterviewSessionDetails details) {
-    return """
-You are a professional technical interviewer.
-
-Generate a complete evaluation report from this compact interview scorecard.
-Do not assume any extra answers beyond the scorecard.
-
-Interview details:
-Candidate Name: ${details.candidateName}
-Interview Topic: ${details.interviewTopic}
-Difficulty Level: ${details.difficultyLevel}
-Interview Type: ${details.interviewType}
-Years of Experience: ${details.yearsOfExperience}
-Questions Answered: ${_scorecard.length}
-Question Budget: ${_questionBudget.minQuestions}-${_questionBudget.maxQuestions}
-
-Scorecard JSON:
-${jsonEncode(_scorecard.map((entry) => entry.toJson()).toList(growable: false))}
-
-Report Requirements:
-1. Use proper Markdown formatting.
-2. Use clear section headings with ## and ###.
-3. Use bullet points and numbered lists wherever appropriate.
-4. Highlight important terms using bold text.
-5. Keep spacing clean and readable.
-6. Be lenient with minor speech-to-text transcription errors.
-7. Focus more on intent and conceptual correctness than exact wording.
-8. Keep feedback constructive and actionable.
-
-Evaluation Sections:
-
-## Candidate Summary
-
-## Strengths
-
-## Weaknesses
-
-## Question-wise Feedback
-
-For each question include:
-- Expected concept
-- Candidate response summary
-- Evaluation as Correct, Partial, or Incorrect
-- Improvement tip
-
-## Suggestions for Improvement
-
-## Final Evaluation
-
-Include overall rating as Beginner, Intermediate, or Strong with a short justification and interview readiness status.
-""";
   }
 
   // ================= HELPER =================

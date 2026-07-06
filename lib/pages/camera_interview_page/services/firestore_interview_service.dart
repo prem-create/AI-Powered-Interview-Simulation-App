@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_persistence_exception.dart';
+import 'package:interview_app/pages/camera_interview_page/models/interview_scorecard_entry.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
 
 class FirestoreInterviewService {
@@ -19,6 +20,7 @@ class FirestoreInterviewService {
         ...details.toMap(),
         'resultMarkdown': null,
         'status': 'in_progress',
+        'answeredQuestionsCount': 0,
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -31,6 +33,41 @@ class FirestoreInterviewService {
     } catch (_) {
       throw const InterviewPersistenceException(
         'Could not save interview details. Please try again.',
+      );
+    }
+  }
+
+  Future<void> saveAnswerTurn({
+    required String interviewId,
+    required int turnNumber,
+    required InterviewScorecardEntry scorecardEntry,
+  }) async {
+    try {
+      final interviewDocument = _currentUserInterviews.doc(interviewId);
+      final turnDocument = interviewDocument
+          .collection('turns')
+          .doc(turnNumber.toString());
+
+      final batch = _firestore.batch();
+      batch.set(turnDocument, {
+        ...scorecardEntry.toJson(),
+        'turnNumber': turnNumber,
+        'submittedAt': FieldValue.serverTimestamp(),
+      });
+      batch.update(interviewDocument, {
+        'answeredQuestionsCount': turnNumber,
+        'lastAnsweredAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
+    } on InterviewPersistenceException {
+      rethrow;
+    } on FirebaseException catch (error) {
+      throw InterviewPersistenceException(_messageForFirebaseCode(error.code));
+    } catch (_) {
+      throw const InterviewPersistenceException(
+        'Could not save interview answer. Please try again.',
       );
     }
   }

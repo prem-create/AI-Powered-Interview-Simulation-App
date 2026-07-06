@@ -38,10 +38,15 @@ class CameraInterviewBloc
     on<CandidateAnswerSubmittedEvent>(candidateAnswerSubmittedEvent);
 
     on<SpeakTtsEvent>(speakTtsEvent);
+
+    on<CameraInterviewLifecyclePausedEvent>(
+      cameraInterviewLifecyclePausedEvent,
+    );
   }
 
   final GeminiRepository _geminiRepository;
   final InterviewPersistenceRepository _interviewPersistenceRepository;
+  final TtsLogic _ttsLogic = TtsLogic();
   String? _activeInterviewId;
 
   // camera interview button tapped
@@ -140,6 +145,45 @@ class CameraInterviewBloc
       }
 
       final turnResponse = nextQuestion.data!;
+      final activeInterviewId = _activeInterviewId;
+      if (activeInterviewId == null) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: 'Interview session was not saved. Please try again.',
+          ),
+        );
+        return;
+      }
+
+      final scorecard = _geminiRepository.scorecard;
+      if (scorecard.isEmpty) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage:
+                'Interview answer was not captured. Please try again.',
+          ),
+        );
+        return;
+      }
+
+      try {
+        await _interviewPersistenceRepository.saveAnswerTurn(
+          interviewId: activeInterviewId,
+          turnNumber: scorecard.length,
+          scorecardEntry: scorecard.last,
+        );
+      } on InterviewPersistenceException catch (error) {
+        emit(CameraInterviewLoadingErrorState(errorMessage: error.message));
+        return;
+      } catch (_) {
+        emit(
+          CameraInterviewLoadingErrorState(
+            errorMessage: 'Could not save interview answer. Please try again.',
+          ),
+        );
+        return;
+      }
+
       if (turnResponse.shouldGenerateResult) {
         await _generateAndSaveResult(emit);
         return;
@@ -208,8 +252,20 @@ class CameraInterviewBloc
     SpeakTtsEvent event,
     Emitter<CameraInterviewState> emit,
   ) async {
-    TtsLogic ttsLogic = TtsLogic();
-    ttsLogic.initializeTts();
-    ttsLogic.speak(text: event.text);
+    _ttsLogic.initializeTts();
+    await _ttsLogic.speak(text: event.text);
+  }
+
+  FutureOr<void> cameraInterviewLifecyclePausedEvent(
+    CameraInterviewLifecyclePausedEvent event,
+    Emitter<CameraInterviewState> emit,
+  ) async {
+    await _ttsLogic.stopSpeaking();
+  }
+
+  @override
+  Future<void> close() async {
+    await _ttsLogic.stopSpeaking();
+    return super.close();
   }
 }

@@ -14,9 +14,45 @@ class BottomBar extends StatefulWidget {
   State<BottomBar> createState() => _BottomBarState();
 }
 
-class _BottomBarState extends State<BottomBar> {
+class _BottomBarState extends State<BottomBar> with WidgetsBindingObserver {
   final SpeechRecordingLogic record = SpeechRecordingLogic();
   bool isMicOn = false;
+  bool isRecordingActionInProgress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_shouldStopRecording(state)) {
+      _cancelActiveRecording();
+    }
+  }
+
+  bool _shouldStopRecording(AppLifecycleState state) {
+    return state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached;
+  }
+
+  Future<void> _cancelActiveRecording() async {
+    if (isMicOn && mounted) {
+      setState(() => isMicOn = false);
+    }
+    await record.cancelRecording();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    record.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -31,30 +67,16 @@ class _BottomBarState extends State<BottomBar> {
             ),
 
             child: IconButton(
-              onPressed: () async {
-                if (!isMicOn) {
-                  // START recording
-                  setState(() {
-                    isMicOn = true;
-                  });
-
-                  await record.startRecording();
-                } else {
-                  // STOP recording
-                  setState(() {
-                    isMicOn = false;
-                  });
-
-                  final transcript = await record.stopRecording(); // ✅ await
-
-                  if (transcript != null) {
-                    userTranscription = transcript;
-                    context.read<CameraInterviewBloc>().add(
-                      CandidateAnswerSubmittedEvent(answer: transcript),
-                    );
-                  }
-                }
-              },
+              tooltip: isMicOn ? 'Stop recording' : 'Start recording',
+              onPressed: isRecordingActionInProgress
+                  ? null
+                  : () async {
+                      if (!isMicOn) {
+                        await _startRecording();
+                      } else {
+                        await _stopRecordingAndSubmitAnswer();
+                      }
+                    },
               icon: Icon(isMicOn ? Icons.mic : Icons.mic_off, size: 35.sp),
             ),
           ),
@@ -65,7 +87,9 @@ class _BottomBarState extends State<BottomBar> {
               shape: BoxShape.circle,
             ),
             child: IconButton(
-              onPressed: () {},
+              onPressed: () async {
+                // Camera recording is not implemented yet.
+              },
               icon: Icon(Icons.videocam_off, size: 35.sp),
             ),
           ),
@@ -90,5 +114,53 @@ class _BottomBarState extends State<BottomBar> {
         ],
       ),
     );
+  }
+
+  Future<void> _startRecording() async {
+    setState(() => isRecordingActionInProgress = true);
+
+    final result = await record.startRecording();
+    if (!mounted) return;
+
+    setState(() {
+      isMicOn = result.isSuccess;
+      isRecordingActionInProgress = false;
+    });
+
+    if (!result.isSuccess) {
+      _showRecordingStartFailure(result.failure);
+    }
+  }
+
+  Future<void> _stopRecordingAndSubmitAnswer() async {
+    setState(() {
+      isMicOn = false;
+      isRecordingActionInProgress = true;
+    });
+
+    final transcript = await record.stopRecording();
+    if (!mounted) return;
+
+    setState(() => isRecordingActionInProgress = false);
+
+    if (transcript != null) {
+      userTranscription = transcript;
+      context.read<CameraInterviewBloc>().add(
+        CandidateAnswerSubmittedEvent(answer: transcript),
+      );
+    }
+  }
+
+  void _showRecordingStartFailure(RecordingStartFailure? failure) {
+    final message = switch (failure) {
+      RecordingStartFailure.permissionDenied =>
+        'Microphone permission is required to record your answer.',
+      RecordingStartFailure.unavailable ||
+      null => 'Could not start recording. Please try again.',
+    };
+
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

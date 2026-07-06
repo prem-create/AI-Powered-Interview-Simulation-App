@@ -1,3 +1,4 @@
+import 'package:interview_app/pages/camera_interview_page/models/interview_scorecard_entry.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
 import 'package:interview_app/pages/camera_interview_page/services/firestore_interview_service.dart';
 
@@ -9,6 +10,18 @@ class InterviewPersistenceRepository {
 
   Future<String> createInterviewSession(InterviewSessionDetails details) {
     return _firestoreService.createInterview(details);
+  }
+
+  Future<void> saveAnswerTurn({
+    required String interviewId,
+    required int turnNumber,
+    required InterviewScorecardEntry scorecardEntry,
+  }) {
+    return _firestoreService.saveAnswerTurn(
+      interviewId: interviewId,
+      turnNumber: turnNumber,
+      scorecardEntry: scorecardEntry,
+    );
   }
 
   Future<void> saveResultMarkdown({

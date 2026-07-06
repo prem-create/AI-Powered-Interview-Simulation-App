@@ -55,3 +55,7 @@ class SpeakTtsEvent extends CameraInterviewEvent {
 
   SpeakTtsEvent({required this.text});
 }
+
+/// Event: App leaves foreground or interview page is closing
+/// Stops active media resources that should not continue in background
+class CameraInterviewLifecyclePausedEvent extends CameraInterviewEvent {}
