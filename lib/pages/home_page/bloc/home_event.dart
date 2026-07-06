@@ -18,7 +18,6 @@ final class CameraInterviewButtonClicked extends HomeEvent {}
 /// Triggers navigation to text-based chat interview
 final class StartTalkToAiButtonClicked extends HomeEvent {}
 
-
-
-
-
+/// Event: User clicked logout button
+/// Signs out the current user and returns to authentication
+final class LogoutButtonClicked extends HomeEvent {}

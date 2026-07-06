@@ -3,7 +3,7 @@
 // ============================================================================
 // Defines all possible states the home page can be in
 // UI rebuilds based on these states
-// 
+//
 // STATE TYPES:
 // 1. Regular States - Trigger UI rebuild (HomeInitial, ApiKeyState)
 // 2. Action States - Trigger one-time actions like navigation
@@ -30,7 +30,16 @@ final class CameraInterviewActionState extends HomeActionState {}
 /// Triggers when user wants to start text-based chat interview
 final class StartTalkToAiActionState extends HomeActionState {}
 
+/// Action State: Navigate to auth page after successful logout
+final class LogoutSuccessActionState extends HomeActionState {}
+
+/// Action State: Show logout failure without rebuilding the home page
+final class LogoutFailureActionState extends HomeActionState {
+  LogoutFailureActionState({required this.message});
+
+  final String message;
+}
+
 /// State: API key validation in progress
 /// Shows loading or validation UI while checking Gemini API configuration
 final class ApiKeyState extends HomeState {}
-

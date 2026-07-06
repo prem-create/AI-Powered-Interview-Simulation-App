@@ -95,6 +95,22 @@ class AuthRepository {
     }
   }
 
+  Future<void> logout() async {
+    try {
+      await _firebaseAuth.signOut();
+
+      if (!kIsWeb) {
+        final googleSignIn = GoogleSignIn.instance;
+        await _initializeGoogleSignIn(googleSignIn);
+        await googleSignIn.signOut();
+      }
+    } on FirebaseAuthException catch (error) {
+      throw AuthException(_messageForLogoutCode(error.code));
+    } catch (_) {
+      throw const AuthException('Could not log out. Please try again.');
+    }
+  }
+
   String _messageForFirebaseCode(String code) {
     switch (code) {
       case 'email-already-in-use':
@@ -172,6 +188,15 @@ class AuthRepository {
         return 'Could not connect. Please check your internet connection.';
       default:
         return 'Could not log in with Google. Please try again.';
+    }
+  }
+
+  String _messageForLogoutCode(String code) {
+    switch (code) {
+      case 'network-request-failed':
+        return 'Could not connect. Please check your internet connection.';
+      default:
+        return 'Could not log out. Please try again.';
     }
   }
 }

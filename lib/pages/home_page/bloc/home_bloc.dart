@@ -15,6 +15,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:interview_app/pages/auth/repo/auth_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'home_event.dart';
@@ -22,11 +23,16 @@ part 'home_state.dart';
 
 /// HomeBloc: Manages home page state and navigation logic
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
-  HomeBloc() : super(HomeInitial()) {
+  HomeBloc({AuthRepository? authRepository})
+    : _authRepository = authRepository ?? AuthRepository(),
+      super(HomeInitial()) {
     // Register event handlers
     on<CameraInterviewButtonClicked>(cameraInterviewButtonClicked);
     on<StartTalkToAiButtonClicked>(startTalkToAiButtonClicked);
+    on<LogoutButtonClicked>(logoutButtonClicked);
   }
+
+  final AuthRepository _authRepository;
 
   /// Handles Camera Interview button click
   /// Emits action state to navigate to camera interview page
@@ -44,5 +50,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) {
     emit(StartTalkToAiActionState());
+  }
+
+  Future<void> logoutButtonClicked(
+    LogoutButtonClicked event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      await _authRepository.logout();
+      emit(LogoutSuccessActionState());
+    } on AuthException catch (error) {
+      emit(LogoutFailureActionState(message: error.message));
+    } catch (_) {
+      emit(
+        LogoutFailureActionState(
+          message: 'Could not log out. Please try again.',
+        ),
+      );
+    }
   }
 }
