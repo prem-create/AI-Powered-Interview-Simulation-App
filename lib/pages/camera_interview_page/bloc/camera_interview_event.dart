@@ -44,6 +44,17 @@ class CandidateAnswerSubmittedEvent extends CameraInterviewEvent {
   });
 }
 
+/// Event: Candidate recording has stopped and transcription is starting
+/// Shows loading immediately while speech-to-text work runs
+class CandidateAnswerTranscriptionStartedEvent extends CameraInterviewEvent {}
+
+/// Event: Candidate answer transcription failed before answer submission
+class CandidateAnswerTranscriptionFailedEvent extends CameraInterviewEvent {
+  final String errorMessage;
+
+  CandidateAnswerTranscriptionFailedEvent({required this.errorMessage});
+}
+
 /// Event: Navigate back to interview details form
 /// Allows user to restart with different parameters
 class AskInterviewDetailsEvent extends CameraInterviewEvent {}

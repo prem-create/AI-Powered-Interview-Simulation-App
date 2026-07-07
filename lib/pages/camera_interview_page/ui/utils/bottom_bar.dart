@@ -138,16 +138,39 @@ class _BottomBarState extends State<BottomBar> with WidgetsBindingObserver {
       isRecordingActionInProgress = true;
     });
 
-    final transcript = await record.stopRecording();
-    if (!mounted) return;
+    final cameraInterviewBloc = context.read<CameraInterviewBloc>();
+    final audioFile = await record.stopRecordingToFile();
 
-    setState(() => isRecordingActionInProgress = false);
+    if (audioFile == null) {
+      if (mounted) {
+        setState(() => isRecordingActionInProgress = false);
+      }
+      return;
+    }
 
-    if (transcript != null) {
-      userTranscription = transcript;
-      context.read<CameraInterviewBloc>().add(
-        CandidateAnswerSubmittedEvent(answer: transcript),
+    cameraInterviewBloc.add(CandidateAnswerTranscriptionStartedEvent());
+
+    final transcriptionResult = await record.transcribeRecording(audioFile);
+
+    if (!cameraInterviewBloc.isClosed && !transcriptionResult.isSuccess) {
+      cameraInterviewBloc.add(
+        CandidateAnswerTranscriptionFailedEvent(
+          errorMessage: transcriptionResult.errorMessage!,
+        ),
       );
+    } else if (transcriptionResult.transcript != null) {
+      userTranscription = transcriptionResult.transcript!;
+      if (!cameraInterviewBloc.isClosed) {
+        cameraInterviewBloc.add(
+          CandidateAnswerSubmittedEvent(
+            answer: transcriptionResult.transcript!,
+          ),
+        );
+      }
+    }
+
+    if (mounted) {
+      setState(() => isRecordingActionInProgress = false);
     }
   }
 

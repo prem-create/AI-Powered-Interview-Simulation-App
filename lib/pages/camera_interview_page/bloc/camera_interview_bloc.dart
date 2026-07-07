@@ -37,6 +37,14 @@ class CameraInterviewBloc
     //Candidate stopped speaking
     on<CandidateAnswerSubmittedEvent>(candidateAnswerSubmittedEvent);
 
+    on<CandidateAnswerTranscriptionStartedEvent>(
+      candidateAnswerTranscriptionStartedEvent,
+    );
+
+    on<CandidateAnswerTranscriptionFailedEvent>(
+      candidateAnswerTranscriptionFailedEvent,
+    );
+
     on<SpeakTtsEvent>(speakTtsEvent);
 
     on<CameraInterviewLifecyclePausedEvent>(
@@ -121,6 +129,25 @@ class CameraInterviewBloc
   }
 
   // when user complete answering
+  FutureOr<void> candidateAnswerTranscriptionStartedEvent(
+    CandidateAnswerTranscriptionStartedEvent event,
+    Emitter<CameraInterviewState> emit,
+  ) {
+    emit(CameraInterviewLoadingState());
+  }
+
+  FutureOr<void> candidateAnswerTranscriptionFailedEvent(
+    CandidateAnswerTranscriptionFailedEvent event,
+    Emitter<CameraInterviewState> emit,
+  ) {
+    emit(
+      CameraInterviewLoadingErrorState(
+        errorMessage: event.errorMessage,
+        canRetryAnswerSubmission: false,
+      ),
+    );
+  }
+
   FutureOr<void> candidateAnswerSubmittedEvent(
     CandidateAnswerSubmittedEvent event,
     Emitter<CameraInterviewState> emit,

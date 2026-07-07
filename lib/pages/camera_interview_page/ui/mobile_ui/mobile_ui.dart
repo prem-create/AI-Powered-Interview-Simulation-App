@@ -40,17 +40,21 @@ class MobileUi extends StatelessWidget {
           return Scaffold(
             appBar: AppBar(
               title: Text('Error'),
-              actions: [
-                IconButton(
-                  icon: Icon(Icons.refresh),
-                  onPressed: () {
-                    context.read<CameraInterviewBloc>().add(
-                      CandidateAnswerSubmittedEvent(answer: userTranscription),
-                    );
-                    context.pop();
-                  },
-                ),
-              ],
+              actions: state.canRetryAnswerSubmission
+                  ? [
+                      IconButton(
+                        icon: Icon(Icons.refresh),
+                        onPressed: () {
+                          context.read<CameraInterviewBloc>().add(
+                            CandidateAnswerSubmittedEvent(
+                              answer: userTranscription,
+                            ),
+                          );
+                          context.pop();
+                        },
+                      ),
+                    ]
+                  : null,
             ),
             body: Center(
               child: Padding(

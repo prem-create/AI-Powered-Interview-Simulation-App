@@ -67,4 +67,47 @@ class ErrorsHandler {
   static String geminiEmptyResponseMessage() {
     return 'Gemini did not return a response. Please try again.';
   }
+
+  static String googleSttStatusCodeMessage(int statusCode) {
+    switch (statusCode) {
+      case 400:
+        return 'Could not transcribe this recording. Please keep answers under 1 minute and try again.';
+      case 401:
+      case 403:
+        return 'Speech transcription is not configured correctly. Please check the Google Speech API key.';
+      case 429:
+        return 'Speech transcription usage limit reached. Please wait and try again later.';
+      case 500:
+      case 503:
+        return 'Speech transcription is temporarily unavailable. Please try again shortly.';
+      case 504:
+        return 'Speech transcription took too long. Please try a shorter answer.';
+      default:
+        return 'Speech transcription failed. Please try again.';
+    }
+  }
+
+  static String googleSttTimeoutMessage() {
+    return 'Speech transcription took too long. Please try again with a shorter answer.';
+  }
+
+  static String googleSttNetworkMessage() {
+    return 'Could not connect to speech transcription. Please check your internet connection.';
+  }
+
+  static String googleSttParsingMessage() {
+    return 'Speech transcription returned an unexpected response. Please try again.';
+  }
+
+  static String googleSttEmptyResponseMessage() {
+    return 'No speech was detected. Please record your answer again.';
+  }
+
+  static String googleSttRecordingTooLongMessage() {
+    return 'Please keep recorded answers under 1 minute. For longer answers, stop and submit in smaller parts.';
+  }
+
+  static String googleSttFileUnavailableMessage() {
+    return 'Could not read the recorded audio. Please record your answer again.';
+  }
 }
