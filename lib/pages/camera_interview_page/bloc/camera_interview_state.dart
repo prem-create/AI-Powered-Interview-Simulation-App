@@ -30,11 +30,11 @@ final class CameraInterviewLoadingState extends CameraInterviewState {}
 /// Shows error message to user
 final class CameraInterviewLoadingErrorState extends CameraInterviewState {
   final String errorMessage;
-  final bool canRetryAnswerSubmission;
+  final bool canRetryAction;
 
   CameraInterviewLoadingErrorState({
     required this.errorMessage,
-    this.canRetryAnswerSubmission = true,
+    this.canRetryAction = true,
   });
 }
 

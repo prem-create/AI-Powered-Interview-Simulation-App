@@ -55,6 +55,9 @@ class CandidateAnswerTranscriptionFailedEvent extends CameraInterviewEvent {
   CandidateAnswerTranscriptionFailedEvent({required this.errorMessage});
 }
 
+/// Event: Retry the last failed interview action when it is safe to do so
+class RetryLastInterviewActionEvent extends CameraInterviewEvent {}
+
 /// Event: Navigate back to interview details form
 /// Allows user to restart with different parameters
 class AskInterviewDetailsEvent extends CameraInterviewEvent {}
