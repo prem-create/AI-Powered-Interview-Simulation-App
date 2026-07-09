@@ -46,16 +46,15 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
 
           return LayoutBuilder(
             builder: (context, constraints) {
-              final crossAxisCount = _crossAxisCountForWidth(
-                constraints.maxWidth,
-              );
 
               return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+                padding: EdgeInsets.all(16.w),
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: _maxCrossAxisExtentForWidth(
+                    constraints.maxWidth,
+                  ),
+                  crossAxisSpacing: 12.w,
+                  mainAxisSpacing: 12.h,
                   mainAxisExtent: _cardHeightForWidth(constraints.maxWidth),
                 ),
                 itemCount: interviews.length,
@@ -70,16 +69,19 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
     );
   }
 
-  int _crossAxisCountForWidth(double width) {
-    if (width >= 1100) return 3;
-    if (width >= 700) return 2;
-    return 1;
-  }
+
 
   double _cardHeightForWidth(double width) {
     if (width >= 1100) return 180.h;
-    if (width >= 700) return 330.h;
+    if (width >= 700) return 380.h;
     return 280.h;
+  }
+
+  double _maxCrossAxisExtentForWidth(double width) {
+    // keep cards comfortably sized across breakpoints
+    if (width >= 1100) return 360.w;
+    if (width >= 700) return 250.w;
+    return width - 25.w; // single column with side padding accounted
   }
 }
 
@@ -95,81 +97,81 @@ class _InterviewHistoryCard extends StatelessWidget {
     return Card(
       elevation: 1,
       clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: hasResult
-            ? () =>
-                  context.push('/historyPage', extra: interview.resultMarkdown)
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _StatusIndicator(hasResult: hasResult),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      hasResult ? 'Completed' : 'Interview not ended',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: hasResult ? Colors.green.shade700 : Colors.red,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                interview.interviewTopic.isEmpty
-                    ? 'Untitled interview'
-                    : interview.interviewTopic,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _detailsText,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 12),
-              hasResult
-                  ? OutlinedButton(
-                      onPressed: () => context.push(
-                        '/historyPage',
-                        extra: interview.resultMarkdown,
-                      ),
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Center(
+          child: Container(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    _StatusIndicator(hasResult: hasResult),
+                    SizedBox(width: 8.w),
+                    Expanded(
                       child: Text(
-                        'See Detailed Report',
+                        hasResult ? 'Completed' : 'Interview not ended',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.green.shade700,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                          color: hasResult ? Colors.green.shade700 : Colors.red,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    )
-                  : Text(
-                      'Result not available because this interview is still in progress.',
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Colors.red.shade700,
-                      ),
                     ),
-              const SizedBox(height: 12),
-              Text(
-                _dateText(interview.updatedAt ?? interview.createdAt),
-                style: Theme.of(context).textTheme.labelSmall,
-              ),
-            ],
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                Text(
+                  interview.interviewTopic.isEmpty
+                      ? 'Untitled interview'
+                      : interview.interviewTopic,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  _detailsText,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+                SizedBox(height: 12.h),
+                hasResult
+                    ? OutlinedButton(
+                        onPressed: () => context.push(
+                          '/historyPage',
+                          extra: interview.resultMarkdown,
+                        ),
+                        child: Text(
+                          'See Detailed Report',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.green.shade700,
+                          ),
+                        ),
+                      )
+                    : Text(
+                        'Result not available because this interview is still in progress.',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                SizedBox(height: 12.h),
+                Text(
+                  _dateText(interview.updatedAt ?? interview.createdAt),
+                  style: Theme.of(context).textTheme.labelSmall,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -205,8 +207,8 @@ class _StatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 10,
-      height: 10,
+      width: 10.w,
+      height: 10.w,
       decoration: BoxDecoration(
         color: hasResult ? Colors.green : Colors.red,
         shape: BoxShape.circle,

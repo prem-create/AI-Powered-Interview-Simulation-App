@@ -20,6 +20,7 @@ Future<void> InitialInterviewDetialsAlertBox({
       return StatefulBuilder(
         builder: (context, setState) {
           return AlertDialog(
+            scrollable: true,
             title: Text('Enter the Required details to proceed'),
             titlePadding: EdgeInsets.all(20),
             actions: [

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:interview_app/core/extensions/sized_box_extension.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/bottom_bar.dart';
 
 class LoadingSuccessMobileUi extends StatelessWidget {
@@ -26,6 +25,12 @@ class LoadingSuccessMobileUi extends StatelessWidget {
         ),
       ),
       backgroundColor: const Color.fromARGB(255, 234, 240, 249),
+      persistentFooterButtons: [
+        Padding(
+          padding: EdgeInsets.only(bottom: 10.h),
+          child: BottomBar(),
+        ),
+      ],
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -102,11 +107,6 @@ class LoadingSuccessMobileUi extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
-                    10.ht,
-                    Padding(
-                      padding: EdgeInsets.only(bottom: 10.h),
-                      child: BottomBar(),
                     ),
                   ],
                 ),
