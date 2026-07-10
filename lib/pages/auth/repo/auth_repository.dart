@@ -59,6 +59,18 @@ class AuthRepository {
     }
   }
 
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    try {
+      await _firebaseAuth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (error) {
+      throw AuthException(_messageForPasswordResetCode(error.code));
+    } catch (_) {
+      throw const AuthException(
+        'Could not send the password reset link. Please try again.',
+      );
+    }
+  }
+
   Future<UserCredential> loginWithGoogle() async {
     try {
       if (kIsWeb) {
@@ -144,6 +156,21 @@ class AuthRepository {
         return 'Could not connect. Please check your internet connection.';
       default:
         return 'Could not log in. Please try again.';
+    }
+  }
+
+  String _messageForPasswordResetCode(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'Please enter a valid email address.';
+      case 'user-not-found':
+        return 'No account was found for this email address.';
+      case 'too-many-requests':
+        return 'Too many password reset attempts. Please try again later.';
+      case 'network-request-failed':
+        return 'Could not connect. Please check your internet connection.';
+      default:
+        return 'Could not send the password reset link. Please try again.';
     }
   }
 

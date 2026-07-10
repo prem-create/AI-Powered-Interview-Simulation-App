@@ -12,6 +12,12 @@ final class LoginSubmitted extends AuthEvent {
 
 final class GoogleLoginSubmitted extends AuthEvent {}
 
+final class ForgotPasswordSubmitted extends AuthEvent {
+  ForgotPasswordSubmitted({required this.email});
+
+  final String email;
+}
+
 final class CreateAccountSubmitted extends AuthEvent {
   CreateAccountSubmitted({required this.email, required this.password});
 

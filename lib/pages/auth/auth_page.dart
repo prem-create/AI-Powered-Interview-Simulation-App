@@ -262,25 +262,84 @@ class _CreateAccountViewState extends State<_CreateAccountView> {
   }
 }
 
-class _ForgotPasswordView extends StatelessWidget {
+class _ForgotPasswordView extends StatefulWidget {
   const _ForgotPasswordView({required this.onShowView});
 
   final ValueChanged<AuthView> onShowView;
 
   @override
+  State<_ForgotPasswordView> createState() => _ForgotPasswordViewState();
+}
+
+class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      return;
+    }
+
+    context.read<AuthBloc>().add(
+      ForgotPasswordSubmitted(email: _emailController.text),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return _AuthForm(
-      title: 'Forgot password',
-      children: [
-        const _EmailField(),
-        const SizedBox(height: 16),
-        ElevatedButton(onPressed: () {}, child: const Text('Send reset link')),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: () => onShowView(AuthView.login),
-          child: const Text('Back to login'),
-        ),
-      ],
+    return BlocConsumer<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state case AuthSuccess(
+          :final message,
+          action: AuthSuccessAction.showMessageAndLoginAfterPasswordReset,
+        )) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+          _emailController.clear();
+          widget.onShowView(AuthView.login);
+        }
+
+        if (state case AuthFailure(:final message)) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Form(
+          key: _formKey,
+          child: _AuthForm(
+            title: 'Forgot password',
+            children: [
+              _EmailField(controller: _emailController),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: isLoading ? null : _submit,
+                child: Text(
+                  isLoading ? 'Sending reset link...' : 'Send reset link',
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () => widget.onShowView(AuthView.login),
+                child: const Text('Back to login'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

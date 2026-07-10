@@ -13,6 +13,10 @@
 // TODO: Implement camera interview result page for detailed feedback
 // ============================================================================
 
+import 'dart:async';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/auth/auth_page.dart';
 import 'package:interview_app/pages/auth/repo/auth_repository.dart';
@@ -27,10 +31,18 @@ final AuthRepository _authRepository = AuthRepository();
 /// Global router instance used by MaterialApp.router
 final GoRouter router = GoRouter(
   initialLocation: '/', // App starts at home page
+  refreshListenable: _AuthStateRefreshListenable(
+    FirebaseAuth.instance.authStateChanges(),
+  ),
   redirect: (context, state) {
     final isLoginRoute = state.uri.path == '/';
+    final isLoggedIn = _authRepository.isLoggedIn;
 
-    if (isLoginRoute && _authRepository.isLoggedIn) {
+    if (!isLoggedIn && !isLoginRoute) {
+      return '/';
+    }
+
+    if (isLoginRoute && isLoggedIn) {
       return '/home';
     }
 
@@ -71,3 +83,17 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
+
+class _AuthStateRefreshListenable extends ChangeNotifier {
+  _AuthStateRefreshListenable(Stream<User?> stream) {
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<User?> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}

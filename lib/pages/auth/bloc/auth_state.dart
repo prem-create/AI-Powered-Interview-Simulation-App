@@ -3,7 +3,11 @@ part of 'auth_bloc.dart';
 @immutable
 sealed class AuthState {}
 
-enum AuthSuccessAction { navigateHome, showMessageAndLogin }
+enum AuthSuccessAction {
+  navigateHome,
+  showMessageAndLogin,
+  showMessageAndLoginAfterPasswordReset,
+}
 
 final class AuthInitial extends AuthState {}
 

@@ -26,7 +26,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/mobile_ui.dart';
-import 'package:responsive_builder/responsive_builder.dart';
 
 /// Camera Interview page - AI-powered interview with voice interaction
 class CameraInterview extends StatefulWidget {
@@ -71,11 +70,6 @@ class _CameraInterviewState extends State<CameraInterview>
   @override
   Widget build(BuildContext context) {
     // Provide CameraInterviewBloc to manage interview state
-    return BlocProvider.value(
-      value: _cameraInterviewBloc,
-      // Responsive layout - currently only mobile UI implemented
-      // TODO: Add desktop and tablet layouts for better multi-device support
-      child: ScreenTypeLayout.builder(mobile: (_) => MobileUi()),
-    );
+    return BlocProvider.value(value: _cameraInterviewBloc, child: MobileUi());
   }
 }

@@ -14,6 +14,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       super(AuthInitial()) {
     on<LoginSubmitted>(_loginSubmitted);
     on<GoogleLoginSubmitted>(_googleLoginSubmitted);
+    on<ForgotPasswordSubmitted>(_forgotPasswordSubmitted);
     on<CreateAccountSubmitted>(_createAccountSubmitted);
   }
 
@@ -60,6 +61,32 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(AuthFailure(error.message));
     } catch (_) {
       emit(AuthFailure('Could not log in with Google. Please try again.'));
+    }
+  }
+
+  FutureOr<void> _forgotPasswordSubmitted(
+    ForgotPasswordSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    try {
+      await _authRepository.sendPasswordResetEmail(email: event.email);
+
+      emit(
+        AuthSuccess(
+          'Password reset link sent. Please check your email.',
+          action: AuthSuccessAction.showMessageAndLoginAfterPasswordReset,
+        ),
+      );
+    } on AuthException catch (error) {
+      emit(AuthFailure(error.message));
+    } catch (_) {
+      emit(
+        AuthFailure(
+          'Could not send the password reset link. Please try again.',
+        ),
+      );
     }
   }
 

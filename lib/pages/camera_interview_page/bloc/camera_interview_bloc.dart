@@ -89,7 +89,8 @@ class CameraInterviewBloc
     _clearRetryAction();
     await _createSessionAndLoadFirstQuestion(event, emit);
   }
-// _createSessionAndLoadFirstQuestion() would create a interview in firestore but question pool is yet not generated
+
+  // _createSessionAndLoadFirstQuestion() would create a interview in firestore but question pool is yet not generated
   Future<void> _createSessionAndLoadFirstQuestion(
     StartCameraInterviewButtonTappedEvent event,
     Emitter<CameraInterviewState> emit,
@@ -134,7 +135,8 @@ class CameraInterviewBloc
 
     await _loadFirstQuestion(emit);
   }
-//_loadFirstQuestion() will generate the pool and eventually launch first question from the pool
+
+  //_loadFirstQuestion() will generate the pool and eventually launch first question from the pool
   Future<void> _loadFirstQuestion(Emitter<CameraInterviewState> emit) async {
     //sendToGemini will make a api call using the json body we created above
     final firstQuestion = await _geminiRepository.sendToGemini();

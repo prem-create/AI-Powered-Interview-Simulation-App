@@ -10,6 +10,12 @@ part of 'home_bloc.dart';
 @immutable
 sealed class HomeEvent {}
 
+/// Event: Home screen opened and app configuration should be loaded.
+final class HomeStarted extends HomeEvent {}
+
+/// Event: User asked to fetch API keys again after a configuration failure.
+final class RetryApiKeysFetchRequested extends HomeEvent {}
+
 /// Event: User clicked Camera Interview button
 /// Triggers navigation to AI-powered interview with voice interaction
 final class CameraInterviewButtonClicked extends HomeEvent {}

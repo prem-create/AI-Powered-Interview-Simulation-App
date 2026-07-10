@@ -43,3 +43,11 @@ final class LogoutFailureActionState extends HomeActionState {
 /// State: API key validation in progress
 /// Shows loading or validation UI while checking Gemini API configuration
 final class ApiKeyState extends HomeState {}
+
+/// State: API keys could not be loaded.
+/// Shows a retryable configuration error to the user.
+final class ApiKeyFailureState extends HomeState {
+  ApiKeyFailureState({required this.message});
+
+  final String message;
+}
