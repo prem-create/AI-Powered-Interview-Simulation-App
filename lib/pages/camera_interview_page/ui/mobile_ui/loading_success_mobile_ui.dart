@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/bottom_bar.dart';
+import 'package:interview_app/pages/camera_interview_page/ui/utils/interviewer_avatar.dart';
 
 class LoadingSuccessMobileUi extends StatelessWidget {
   final state;
@@ -44,35 +45,8 @@ class LoadingSuccessMobileUi extends StatelessWidget {
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(20.w, 20.w, 20.w, 16.w),
-                      child: Center(
-                        child: SizedBox(
-                          width: heroSize,
-                          child: AspectRatio(
-                            aspectRatio: 1,
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(20),
-                              child: Stack(
-                                fit: StackFit.expand,
-                                children: [
-                                  Image.asset(
-                                    'assets/interview.webp',
-                                    fit: BoxFit.cover,
-                                  ),
-                                  Center(
-                                    child: Text(
-                                      "Camera feature coming soon",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 20.sp,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                      child: InterviewerAvatar(
+                        size: heroSize,
                       ),
                     ),
                     Padding(

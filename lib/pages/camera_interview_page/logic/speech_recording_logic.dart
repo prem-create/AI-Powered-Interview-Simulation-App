@@ -1,7 +1,6 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:interview_app/core/utils/errors_handler.dart';
-import 'package:interview_app/pages/camera_interview_page/repo/google_stt_repo.dart';
+import 'package:interview_app/pages/camera_interview_page/repo/groq_stt_repo.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -48,7 +47,7 @@ class SpeechRecordingLogic {
   static const Duration maxNonStreamingRecordingDuration = Duration(minutes: 1);
 
   final recorder = AudioRecorder();
-  final GoogleSttRepo googleSttRepo = GoogleSttRepo();
+  final GroqSttRepo groqSttRepo = GroqSttRepo();
   DateTime? _recordingStartedAt;
 
   final recordConfig = const RecordConfig(
@@ -115,7 +114,7 @@ class SpeechRecordingLogic {
   ) async {
     if (audioFile.duration > maxNonStreamingRecordingDuration) {
       return TranscriptionResult.failure(
-        ErrorsHandler.googleSttRecordingTooLongMessage(),
+        ErrorsHandler.groqSttRecordingTooLongMessage(),
       );
     }
 
@@ -126,22 +125,14 @@ class SpeechRecordingLogic {
 
     if (!exists) {
       return TranscriptionResult.failure(
-        ErrorsHandler.googleSttFileUnavailableMessage(),
+        ErrorsHandler.groqSttFileUnavailableMessage(),
       );
     }
 
-    // read as bytes
-    final bytes = await file.readAsBytes();
-
-    //conver to base64
-    final base64 = base64Encode(bytes);
-    log("Base64 length: ${base64.length}");
-
-    final transcript = await googleSttRepo.sendToGoogleStt(base64: base64);
+    final transcript = await groqSttRepo.transcribe(file: file);
     if (!transcript.isSuccess) {
       return TranscriptionResult.failure(
-        transcript.errorMessage ??
-            ErrorsHandler.googleSttEmptyResponseMessage(),
+        transcript.errorMessage ?? ErrorsHandler.groqSttEmptyResponseMessage(),
       );
     }
 

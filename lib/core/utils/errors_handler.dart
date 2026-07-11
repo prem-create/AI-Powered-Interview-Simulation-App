@@ -68,13 +68,13 @@ class ErrorsHandler {
     return 'Gemini did not return a response. Please try again.';
   }
 
-  static String googleSttStatusCodeMessage(int statusCode) {
+  static String groqSttStatusCodeMessage(int statusCode) {
     switch (statusCode) {
       case 400:
         return 'Could not transcribe this recording. Please keep answers under 1 minute and try again.';
       case 401:
       case 403:
-        return 'Speech transcription is not configured correctly. Please check the Google Speech API key.';
+        return 'Speech transcription is not configured correctly. Please check the Groq API key.';
       case 429:
         return 'Speech transcription usage limit reached. Please wait and try again later.';
       case 500:
@@ -87,27 +87,27 @@ class ErrorsHandler {
     }
   }
 
-  static String googleSttTimeoutMessage() {
+  static String groqSttTimeoutMessage() {
     return 'Speech transcription took too long. Please try again with a shorter answer.';
   }
 
-  static String googleSttNetworkMessage() {
+  static String groqSttNetworkMessage() {
     return 'Could not connect to speech transcription. Please check your internet connection.';
   }
 
-  static String googleSttParsingMessage() {
+  static String groqSttParsingMessage() {
     return 'Speech transcription returned an unexpected response. Please try again.';
   }
 
-  static String googleSttEmptyResponseMessage() {
+  static String groqSttEmptyResponseMessage() {
     return 'No speech was detected. Please record your answer again.';
   }
 
-  static String googleSttRecordingTooLongMessage() {
+  static String groqSttRecordingTooLongMessage() {
     return 'Please keep recorded answers under 1 minute. For longer answers, stop and submit in smaller parts.';
   }
 
-  static String googleSttFileUnavailableMessage() {
+  static String groqSttFileUnavailableMessage() {
     return 'Could not read the recorded audio. Please record your answer again.';
   }
 }
