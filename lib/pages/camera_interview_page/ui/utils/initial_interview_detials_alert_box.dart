@@ -21,7 +21,7 @@ Future<void> InitialInterviewDetialsAlertBox({
         builder: (context, setState) {
           return AlertDialog(
             scrollable: true,
-            title: Text('Enter the Required details to proceed'),
+    title: Text('Enter the required details to proceed'),
             titlePadding: EdgeInsets.all(20),
             actions: [
               TextField(
@@ -37,8 +37,8 @@ Future<void> InitialInterviewDetialsAlertBox({
               DropdownButton(
                 isExpanded: true,
                 value: difficultyLevel,
-                hint: Text(
-                  'Beginner, Intermediate, Advanced',
+                    hint: Text(
+                  'Select difficulty level',
                   overflow: TextOverflow.ellipsis,
                 ),
                 items: [
@@ -122,8 +122,8 @@ Future<void> InitialInterviewDetialsAlertBox({
                       context: parentContext,
                       builder: (context) {
                         return AlertDialog(
-                          title: Text('Missing Required input'),
-                          content: Text('enter all the details asked'),
+                          title: Text('Missing required fields'),
+                          content: Text('Please fill in all the required details.'),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(context).pop(),

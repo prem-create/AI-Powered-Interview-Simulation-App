@@ -84,7 +84,7 @@ class _StartTalkToAiState extends State<StartTalkToAi> {
           } 
           // Fallback for unexpected states
           else {
-            return Scaffold(body: Center(child: Text("something went wrong!")));
+            return Scaffold(body: Center(child: Text("Something went wrong. Please try again.")));
           }
         },
       ),

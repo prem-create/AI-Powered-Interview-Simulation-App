@@ -25,7 +25,7 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Result History'), centerTitle: true),
+      appBar: AppBar(title: const Text('Interview History'), centerTitle: true),
       body: StreamBuilder<List<InterviewHistoryItem>>(
         stream: _historyStream,
         builder: (context, snapshot) {
@@ -41,12 +41,11 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
 
           final interviews = snapshot.data ?? const <InterviewHistoryItem>[];
           if (interviews.isEmpty) {
-            return const _HistoryMessage(message: 'No history found');
+            return const _HistoryMessage(message: 'No interviews found');
           }
 
           return LayoutBuilder(
             builder: (context, constraints) {
-
               return GridView.builder(
                 padding: EdgeInsets.all(16.w),
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
@@ -68,8 +67,6 @@ class _ResultHistoryPageState extends State<ResultHistoryPage> {
       ),
     );
   }
-
-
 
   double _cardHeightForWidth(double width) {
     if (width >= 1100) return 180.h;
@@ -111,13 +108,16 @@ class _InterviewHistoryCard extends StatelessWidget {
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
-                        hasResult ? 'Completed' : 'Interview not ended',
+                        hasResult ? 'Completed' : 'In Progress',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                          color: hasResult ? Colors.green.shade700 : Colors.red,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              color: hasResult
+                                  ? Colors.green.shade700
+                                  : Colors.red,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ),
                   ],
@@ -125,13 +125,13 @@ class _InterviewHistoryCard extends StatelessWidget {
                 SizedBox(height: 12.h),
                 Text(
                   interview.interviewTopic.isEmpty
-                      ? 'Untitled interview'
+                      ? 'Untitled Interview'
                       : interview.interviewTopic,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 SizedBox(height: 8.h),
                 Text(
@@ -151,13 +151,12 @@ class _InterviewHistoryCard extends StatelessWidget {
                           'See Detailed Report',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Colors.green.shade700,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: Colors.green.shade700),
                         ),
                       )
                     : Text(
-                        'Result not available because this interview is still in progress.',
+                        'Report not available — this interview was not completed.',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(

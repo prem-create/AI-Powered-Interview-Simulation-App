@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:interview_app/pages/camera_interview_page/models/interview_history_item.dart';
@@ -6,6 +8,7 @@ import 'package:interview_app/pages/camera_interview_page/models/interview_score
 import 'package:interview_app/pages/camera_interview_page/models/interview_session_details.dart';
 
 class FirestoreInterviewService {
+  static const Duration _writeTimeout = Duration(seconds: 20);
   FirestoreInterviewService({
     FirebaseFirestore? firestore,
     FirebaseAuth? firebaseAuth,
@@ -17,14 +20,16 @@ class FirestoreInterviewService {
 
   Future<String> createInterview(InterviewSessionDetails details) async {
     try {
-      final document = await _currentUserInterviews.add({
-        ...details.toMap(),
-        'resultMarkdown': null,
-        'status': 'in_progress',
-        'answeredQuestionsCount': 0,
-        'createdAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      final document = await _currentUserInterviews
+          .add({
+            ...details.toMap(),
+            'resultMarkdown': null,
+            'status': 'in_progress',
+            'answeredQuestionsCount': 0,
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          })
+          .timeout(_writeTimeout);
 
       return document.id;
     } on InterviewPersistenceException {
@@ -61,7 +66,7 @@ class FirestoreInterviewService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      await batch.commit();
+      await batch.commit().timeout(_writeTimeout);
     } on InterviewPersistenceException {
       rethrow;
     } on FirebaseException catch (error) {
@@ -78,14 +83,21 @@ class FirestoreInterviewService {
     required String resultMarkdown,
   }) async {
     try {
-      await _currentUserInterviews.doc(interviewId).update({
-        'resultMarkdown': resultMarkdown,
-        'status': 'completed',
-        'completedAt': FieldValue.serverTimestamp(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      await _currentUserInterviews
+          .doc(interviewId)
+          .update({
+            'resultMarkdown': resultMarkdown,
+            'status': 'completed',
+            'completedAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          })
+          .timeout(_writeTimeout);
     } on InterviewPersistenceException {
       rethrow;
+    } on TimeoutException {
+      throw const InterviewPersistenceException(
+        'Saving the interview took too long. Check your connection and retry.',
+      );
     } on FirebaseException catch (error) {
       throw InterviewPersistenceException(_messageForFirebaseCode(error.code));
     } catch (_) {

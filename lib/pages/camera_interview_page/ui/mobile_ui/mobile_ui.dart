@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:interview_app/pages/camera_interview_page/bloc/camera_interview_bloc.dart';
-import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/camera_interview_result_page.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/initial_mobile_ui.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/mobile_ui/loading_success_mobile_ui.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/initial_interview_detials_alert_box.dart';
+import 'package:interview_app/pages/resutl_History_page/histroy_page.dart';
 
 class MobileUi extends StatelessWidget {
   const MobileUi({super.key});
@@ -31,13 +31,13 @@ class MobileUi extends StatelessWidget {
           return Scaffold(body: Center(child: CircularProgressIndicator()));
         } else if (state is CameraInterviewResultState) {
           // context.go('cameraInterviewResultPage');
-          return CameraInterviewResultPage(result: state.result);
+          return HistroyPage(result: state.result);
         }
         //loading error
         else if (state is CameraInterviewLoadingErrorState) {
           return Scaffold(
             appBar: AppBar(
-              title: Text('Error'),
+              title: Text('Something went wrong'),
               actions: state.canRetryAction
                   ? [
                       IconButton(
@@ -51,13 +51,42 @@ class MobileUi extends StatelessWidget {
                     ]
                   : null,
             ),
-            body: Center(
-              child: Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  state.errorMessage,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 16),
+            body: SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          size: 48,
+                          color: Colors.redAccent,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          state.errorMessage,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        if (state.canRetryAction) ...[
+                          const SizedBox(height: 24),
+                          FilledButton.icon(
+                            onPressed: () {
+                              context.read<CameraInterviewBloc>().add(
+                                RetryLastInterviewActionEvent(),
+                              );
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -76,7 +105,9 @@ class MobileUi extends StatelessWidget {
         }
         //if no state matches or wrong state is emitted
         else {
-          return Scaffold(body: Center(child: Text('state not matched Error')));
+          return Scaffold(
+            body: Center(child: Text('An unexpected error occurred.')),
+          );
         }
       },
     );

@@ -37,12 +37,19 @@ final GoRouter router = GoRouter(
   redirect: (context, state) {
     final isLoginRoute = state.uri.path == '/';
     final isLoggedIn = _authRepository.isLoggedIn;
+    final user = FirebaseAuth.instance.currentUser;
+    final isEmailVerified = user?.emailVerified ?? false;
+
+    // If logged in but email not verified, force back to auth page
+    if (isLoggedIn && !isEmailVerified) {
+      return '/';
+    }
 
     if (!isLoggedIn && !isLoginRoute) {
       return '/';
     }
 
-    if (isLoginRoute && isLoggedIn) {
+    if (isLoginRoute && isLoggedIn && isEmailVerified) {
       return '/home';
     }
 

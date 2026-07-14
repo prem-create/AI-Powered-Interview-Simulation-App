@@ -13,7 +13,7 @@ class InitialMobileUi extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Camera Interview',
+          'AI Interview',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
@@ -43,7 +43,7 @@ class InitialMobileUi extends StatelessWidget {
                                 fit: StackFit.expand,
                                 children: [
                                   Image.asset(
-                                    'assets/interview.webp',
+                                    'assets/images/interview.webp',
                                     fit: BoxFit.cover,
                                   ),
                                   Center(
@@ -55,7 +55,7 @@ class InitialMobileUi extends StatelessWidget {
                                       },
                                       iconData: Icons.play_arrow_outlined,
                                       IconSize: 30,
-                                      text: 'Start Interveiw',
+                                      text: 'Start Interview',
                                       buttoncolor: const Color.fromARGB(
                                         255,
                                         60,
@@ -85,7 +85,7 @@ class InitialMobileUi extends StatelessWidget {
                             child: SizedBox(
                               width: heroSize,
                               child: Text(
-                                "Welcome to your mock interview! 🎯\n\nEnter your details to begin and give it your best shot! 🚀",
+                                "Welcome to your mock interview! 🎯\n\nEnter your details to begin and give it your best shot! 🚀", // TODO: Consider adding tips or what to expect here
                                 style: TextStyle(
                                   color: const Color.fromARGB(255, 50, 48, 48),
                                   fontSize: 20,

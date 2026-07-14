@@ -58,6 +58,7 @@ class _BottomBarState extends State<BottomBar> with WidgetsBindingObserver {
     return Padding(
       padding: const EdgeInsets.only(left: 24, right: 24),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           20.wt,
           Container(
@@ -80,21 +81,7 @@ class _BottomBarState extends State<BottomBar> with WidgetsBindingObserver {
               icon: Icon(isMicOn ? Icons.mic : Icons.mic_off, size: 35.sp),
             ),
           ),
-          20.wt,
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              onPressed: () async {
-                // Camera recording is not implemented yet.
-              },
-              icon: Icon(Icons.videocam_off, size: 35.sp),
-            ),
-          ),
-          20.wt,
-          //End Interview Button
+          40.wt,
           MyIconElevatedButton(
             onPressed: () {
               final String answer = 'End Interview';

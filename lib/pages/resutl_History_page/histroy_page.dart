@@ -7,7 +7,7 @@ class HistroyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('result')),
+      appBar: AppBar(title: Text('Interview Result'), centerTitle: true),
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Markdown(data: result),

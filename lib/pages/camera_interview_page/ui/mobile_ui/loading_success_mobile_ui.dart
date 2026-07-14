@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/bottom_bar.dart';
 import 'package:interview_app/pages/camera_interview_page/ui/utils/interviewer_avatar.dart';
 
@@ -14,16 +13,11 @@ class LoadingSuccessMobileUi extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => context.pop(),
-          icon: Icon(Icons.arrow_back_ios_new_sharp),
+        title: Text(
+          'AI Interview',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
-        title: Center(
-          child: Text(
-            'Camera Interview',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-          ),
-        ),
+        centerTitle: true,
       ),
       backgroundColor: const Color.fromARGB(255, 234, 240, 249),
       persistentFooterButtons: [
@@ -36,7 +30,6 @@ class LoadingSuccessMobileUi extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final heroSize = _heroSizeForWidth(constraints.maxWidth);
-
             return SingleChildScrollView(
               child: Padding(
                 padding: EdgeInsets.only(bottom: 16.h),
@@ -45,9 +38,7 @@ class LoadingSuccessMobileUi extends StatelessWidget {
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(20.w, 20.w, 20.w, 16.w),
-                      child: InterviewerAvatar(
-                        size: heroSize,
-                      ),
+                      child: InterviewerAvatar(size: heroSize),
                     ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 10.w),
@@ -63,7 +54,7 @@ class LoadingSuccessMobileUi extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Ai Response(Question)",
+                                "Interviewer's Question",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 20,

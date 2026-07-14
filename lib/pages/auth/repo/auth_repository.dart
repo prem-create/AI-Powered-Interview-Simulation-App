@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -21,7 +23,12 @@ class AuthRepository {
         password: password,
       );
 
+      // Send verification email while user is still logged in
       await userCredential.user?.sendEmailVerification();
+      
+      // Then sign out to prevent redirect to home
+      await _firebaseAuth.signOut();
+      
       return userCredential;
     } on FirebaseAuthException catch (error) {
       throw AuthException(_messageForFirebaseCode(error.code));
@@ -124,6 +131,7 @@ class AuthRepository {
   }
 
   String _messageForFirebaseCode(String code) {
+    log(code);
     switch (code) {
       case 'email-already-in-use':
         return 'An account already exists with this email.';
