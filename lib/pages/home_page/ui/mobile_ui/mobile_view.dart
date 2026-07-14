@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/home_page/bloc/home_bloc.dart';
-import 'package:interview_app/pages/home_page/ui/utils/my_custom_card.dart';
+import 'package:interview_app/pages/home_page/ui/widgets/my_custom_card.dart';
+import 'package:interview_app/pages/home_page/ui/widgets/my_drawer.dart';
 
 class MobileView extends StatelessWidget {
   @override
@@ -28,23 +29,14 @@ class MobileView extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           appBar: AppBar(
-            leading: IconButton(
-              onPressed: () => context.push('/resultHistory'),
-              icon: Icon(Icons.history),
-            ),
             title: Text(
-              "AI Interview Coach",
+              "Intervista AI",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             backgroundColor: Colors.white,
             centerTitle: true,
-            actions: [
-              IconButton(
-                onPressed: () => _confirmLogout(context),
-                icon: Icon(Icons.logout),
-              ),
-            ],
           ),
+          drawer: MyDrawer(),
           backgroundColor: const Color.fromARGB(255, 234, 240, 249),
           body: SafeArea(child: _buildBody(context, state)),
         );
@@ -97,12 +89,12 @@ class MobileView extends StatelessWidget {
       child: Column(
         children: [
           MyCustomCard(
-            title: 'Start Interview',
+            title: 'AI Interview',
             description:
-                "Practice live interviews with AI, focusing on visual cues and real-time feedback. Get personalized suggestions for improvement",
-            buttonText: 'Start camera interveiw',
+                "Practice live interviews with AI, focusing on adaptive reasoning and real-time feedback. Get personalized suggestions for improvement",
+            buttonText: 'Start interveiw',
             buttoncolor: const Color(0xFF3F51B5),
-            icon: Icons.camera_alt_outlined,
+            icon: Icons.stream_sharp,
             backgroundColor: const Color.fromARGB(255, 219, 226, 246),
             onPressed: () =>
                 context.read<HomeBloc>().add(CameraInterviewButtonClicked()),
@@ -123,31 +115,5 @@ class MobileView extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Future<void> _confirmLogout(BuildContext context) async {
-    final shouldLogout = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        return AlertDialog(
-          title: Text('Log out?'),
-          content: Text('Are you sure you want to log out?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text('Log out'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldLogout == true && context.mounted) {
-      context.read<HomeBloc>().add(LogoutButtonClicked());
-    }
   }
 }
