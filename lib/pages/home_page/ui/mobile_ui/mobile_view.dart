@@ -99,19 +99,6 @@ class MobileView extends StatelessWidget {
             onPressed: () =>
                 context.read<HomeBloc>().add(CameraInterviewButtonClicked()),
           ),
-          //TODO: Removing it from the Version 1 of Playstore
-          // MyCustomCard(
-          //   title: 'Talk to AI',
-          //   description:
-          //       'Engage in voice or chat-based conversations with AI for flexible practice sessions. Refine your verbal responses.',
-          //   buttonText: 'Start Talk to AI',
-          //   buttoncolor: const Color(0xFF25D1F4),
-          //   icon: Icons.mic,
-          //   backgroundColor: const Color.fromARGB(255, 219, 226, 246),
-          //   onPressed: () => context.read<HomeBloc>().add(
-          //     StartTalkToAiButtonClicked(),
-          //   ),
-          // ),
         ],
       ),
     );

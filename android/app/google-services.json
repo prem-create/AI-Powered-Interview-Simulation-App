@@ -66,6 +66,14 @@
           }
         },
         {
+          "client_id": "416135832365-e6nu6lkebp9l9c3ve6nr4bpmrgecrflr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.premdilliwar.intervistaai",
+            "certificate_hash": "43fa3d148dc5ffa0d98d93ea444e6e359bbd7393"
+          }
+        },
+        {
           "client_id": "416135832365-vi8in11v64on69n4s1ejni73fribn9tr.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

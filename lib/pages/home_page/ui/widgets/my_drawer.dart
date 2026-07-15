@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:interview_app/pages/home_page/bloc/home_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Custom drawer widget for the home page
 /// Provides navigation to interview history and account management options
@@ -88,11 +89,6 @@ class MyDrawer extends StatelessWidget {
                     ),
                   ],
                 ),
-                // child: Icon(
-                //   Icons.psychology_rounded,
-                //   size: 36.sp,
-                //   color: const Color(0xFF3F51B5),
-                // ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16.r),
                   child: Image.asset(
@@ -175,7 +171,7 @@ class MyDrawer extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12.r),
         ),
-        hoverColor: Colors.black.withOpacity(0.05),
+        hoverColor: Colors.black.withValues(alpha: 0.05),
       ),
     );
   }
@@ -200,17 +196,18 @@ class MyDrawer extends StatelessWidget {
             },
             iconColor: const Color(0xFF3F51B5),
           ),
+          Divider(height: 1, thickness: 1, color: Colors.black12),
           _buildDrawerItem(
             context: context,
             icon: Icons.delete_forever_rounded,
             title: 'Delete Account',
-            subtitle: 'Permanently remove your account',
-            onTap: () {
-              _showDeleteAccountDialog(context);
+            subtitle: 'Submit a request to delete your account',
+            onTap: () async {
+              await _confirmDeleteAccountRequest(context);
               if (!context.mounted) return;
               context.pop();
             },
-            iconColor: Colors.red.shade700,
+            iconColor: Colors.redAccent,
           ),
           SizedBox(height: 8.h),
         ],
@@ -227,13 +224,16 @@ class MyDrawer extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.r),
           ),
+          titlePadding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+          contentPadding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
+          actionsPadding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
           title: Text(
             'Log out?',
             style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
           ),
           content: Text(
             'Are you sure you want to log out?',
-            style: TextStyle(fontSize: 16.sp),
+            style: TextStyle(fontSize: 16.sp, color: Colors.black87),
           ),
           actions: [
             TextButton(
@@ -249,9 +249,9 @@ class MyDrawer extends StatelessWidget {
                 backgroundColor: const Color(0xFF3F51B5),
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 12.h),
               ),
               child: Text(
                 'Log out',
@@ -268,52 +268,97 @@ class MyDrawer extends StatelessWidget {
     }
   }
 
-  /// Shows information dialog for delete account (placeholder for future implementation)
-  Future<void> _showDeleteAccountDialog(BuildContext context) async {
-    await showDialog(
+  /// Shows a confirmation dialog before opening the account deletion form.
+  Future<void> _confirmDeleteAccountRequest(BuildContext context) async {
+    final shouldProceed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.r),
           ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.red.shade700,
-                size: 28.sp,
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Delete Account',
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
-              ),
-            ],
+          titlePadding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, 8.h),
+          contentPadding: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
+          actionsPadding: EdgeInsets.fromLTRB(20.w, 0, 20.w, 16.h),
+          title: Text(
+            'Delete account?',
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
           ),
           content: Text(
-            'Account deletion feature will be available soon. This action will permanently delete all your data and cannot be undone.',
-            style: TextStyle(fontSize: 16.sp),
+            'Are you sure you want to request account deletion? You will be taken to the deletion request form.',
+            style: TextStyle(fontSize: 15.sp, color: Colors.black87, height: 1.4),
           ),
           actions: [
-            ElevatedButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF3F51B5),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontSize: 15.sp, color: Colors.black54),
+              ),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+                  borderRadius: BorderRadius.circular(10.r),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
               ),
               child: Text(
-                'Got it',
-                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600),
+                'Yes, continue',
+                style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600),
               ),
             ),
           ],
         );
       },
+    );
+
+    if (shouldProceed != true || !context.mounted) return;
+
+    await _launchDeleteAccountForm(context);
+  }
+
+  /// Launches the account deletion request form with graceful error handling.
+  Future<void> _launchDeleteAccountForm(BuildContext context) async {
+    final uri = Uri.parse(
+      'https://docs.google.com/forms/d/e/1FAIpQLSegZQFnuoglxhOTx6_DurJk5aTQXT3XBDsM7bM5H2w5-GVx2w/viewform',
+    );
+
+    try {
+      final launched = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (!launched && context.mounted) {
+        _showSnackBar(
+          context,
+          'The deletion form could not be opened. Please try again.',
+        );
+      }
+    } catch (_) {
+      if (!context.mounted) return;
+      _showSnackBar(
+        context,
+        'Something went wrong while opening the form. Please try again.',
+      );
+    }
+  }
+
+  /// Displays a compact feedback message for the user.
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.r),
+        ),
+        margin: EdgeInsets.all(16.w),
+      ),
     );
   }
 }

@@ -36,22 +36,36 @@ class _AuthViewSwitcherState extends State<_AuthViewSwitcher> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: switch (_currentView) {
-                AuthView.login => _LoginView(onShowView: _showView),
-                AuthView.createAccount => _CreateAccountView(
-                  onShowView: _showView,
-                ),
-                AuthView.forgotPassword => _ForgotPasswordView(
-                  onShowView: _showView,
-                ),
-              },
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.colorScheme.surface,
+              theme.colorScheme.primaryContainer.withValues(alpha: 0.16),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 380),
+                child: switch (_currentView) {
+                  AuthView.login => _LoginView(onShowView: _showView),
+                  AuthView.createAccount => _CreateAccountView(
+                    onShowView: _showView,
+                  ),
+                  AuthView.forgotPassword => _ForgotPasswordView(
+                    onShowView: _showView,
+                  ),
+                },
+              ),
             ),
           ),
         ),
@@ -125,16 +139,29 @@ class _LoginViewState extends State<_LoginView> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: isLoading ? null : _submit,
                 child: Text(isLoading ? 'Logging in...' : 'Login'),
               ),
-              const SizedBox(height: 8),
-              OutlinedButton(
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: isLoading
                     ? null
                     : () =>
                           context.read<AuthBloc>().add(GoogleLoginSubmitted()),
-                child: const Text('Login with Google'),
+                icon: const Icon(Icons.g_mobiledata_rounded),
+                label: const Text('Login with Google'),
               ),
               const SizedBox(height: 16),
               TextButton(
@@ -234,18 +261,31 @@ class _CreateAccountViewState extends State<_CreateAccountView> {
               ),
               const SizedBox(height: 16),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: isLoading ? null : _submit,
                 child: Text(
                   isLoading ? 'Creating account...' : 'Create account',
                 ),
               ),
-              const SizedBox(height: 8),
-              OutlinedButton(
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: isLoading
                     ? null
                     : () =>
                           context.read<AuthBloc>().add(GoogleLoginSubmitted()),
-                child: const Text('Login with Google'),
+                icon: const Icon(Icons.g_mobiledata_rounded),
+                label: const Text('Login with Google'),
               ),
               const SizedBox(height: 16),
               TextButton(
@@ -324,6 +364,12 @@ class _ForgotPasswordViewState extends State<_ForgotPasswordView> {
               _EmailField(controller: _emailController),
               const SizedBox(height: 16),
               ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: isLoading ? null : _submit,
                 child: Text(
                   isLoading ? 'Sending reset link...' : 'Send reset link',
@@ -352,18 +398,66 @@ class _AuthForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 24),
-        ...children,
-      ],
+    final theme = Theme.of(context);
+    final subtitle = switch (title) {
+      'Login' => 'Welcome back and continue your prep.',
+      'Create new account' => 'Start your interview journey today.',
+      'Forgot password' => 'We’ll send a reset link to your email.',
+      _ => 'Continue with confidence.',
+    };
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lock_open_rounded,
+                size: 28,
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          ...children,
+        ],
+      ),
     );
   }
 }
@@ -375,15 +469,41 @@ class _EmailField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.emailAddress,
       autofillHints: const [AutofillHints.email],
       textInputAction: TextInputAction.next,
       validator: _validateEmail,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Email',
-        border: OutlineInputBorder(),
+        prefixIcon: Icon(
+          Icons.email_outlined,
+          color: theme.colorScheme.primary,
+        ),
+        filled: true,
+        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+            width: 1.6,
+          ),
+        ),
       ),
     );
   }
@@ -411,15 +531,41 @@ class _PasswordField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return TextFormField(
       controller: controller,
       obscureText: true,
       autofillHints: autofillHints,
       textInputAction: TextInputAction.done,
       validator: _validatePassword,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: 'Password',
-        border: OutlineInputBorder(),
+        prefixIcon: Icon(
+          Icons.lock_outline,
+          color: theme.colorScheme.primary,
+        ),
+        filled: true,
+        fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.28),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: theme.colorScheme.primary,
+            width: 1.6,
+          ),
+        ),
       ),
     );
   }
